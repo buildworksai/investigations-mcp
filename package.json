@@ -1,0 +1,77 @@
+{
+  "name": "buildworks-ai-investigations-mcp",
+  "version": "1.0.0",
+  "description": "Investigations MCP by BuildWorks.AI — forensic investigations and root cause analysis server for MCP-compatible IDEs.",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "investigations-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "docker:build": "docker build -t investigations-mcp:latest .",
+    "docker:run": "docker run --rm -i investigations-mcp:latest",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "setup": "./scripts/setup.sh"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "examples/",
+    "SETUP.md"
+  ],
+  "keywords": [
+    "buildworks-ai",
+    "mcp",
+    "investigations",
+    "forensics",
+    "root-cause-analysis",
+    "ai-tools",
+    "cursor",
+    "windsurf",
+    "claude"
+  ],
+  "author": "BuildWorks.AI <contact@buildworks.ai> (https://buildworks.ai)",
+  "license": "MIT",
+  "funding": {
+    "type": "website",
+    "url": "https://buildworks.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buildworksai/investigations-mcp.git"
+  },
+  "homepage": "https://github.com/buildworksai/investigations-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/buildworksai/investigations-mcp/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "sqlite3": "^5.1.6",
+    "crypto": "^1.0.1",
+    "fs-extra": "^11.2.0",
+    "node-cron": "^3.0.3",
+    "winston": "^3.11.0",
+    "joi": "^17.12.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

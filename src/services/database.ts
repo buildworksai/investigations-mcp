@@ -1,0 +1,459 @@
+/**
+ * Database service for investigations MCP tools
+ * Provides SQLite-based storage with proper schema and data integrity
+ */
+
+import Database from 'sqlite3';
+import { 
+  InvestigationCase, 
+  EvidenceItem, 
+  AnalysisResult, 
+  Finding,
+  TimelineEvent,
+  CausalRelationship,
+  InvestigationReport,
+  InvestigationFilters
+} from '../types/index.js';
+import { InvestigationError } from '../types/index.js';
+
+export class InvestigationDatabase {
+  private db: Database.Database;
+  private initialized: boolean = false;
+
+  constructor(dbPath: string = './investigations.db') {
+    this.db = new Database.Database(dbPath);
+  }
+
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+
+    try {
+      // Create investigations table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS investigations (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          status TEXT NOT NULL CHECK (status IN ('active', 'completed', 'archived')),
+          severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+          category TEXT NOT NULL CHECK (category IN ('performance', 'security', 'reliability', 'configuration', 'network', 'application')),
+          priority TEXT NOT NULL CHECK (priority IN ('p1', 'p2', 'p3', 'p4')),
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          reported_by TEXT NOT NULL,
+          assigned_to TEXT,
+          affected_systems TEXT,
+          metadata TEXT,
+          root_causes TEXT,
+          contributing_factors TEXT,
+          recommendations TEXT
+        )
+      `);
+
+      // Create evidence table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS evidence (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          type TEXT NOT NULL CHECK (type IN ('log', 'config', 'metric', 'network', 'process', 'filesystem', 'database', 'security')),
+          source TEXT NOT NULL,
+          path TEXT,
+          content TEXT NOT NULL,
+          metadata TEXT NOT NULL,
+          chain_of_custody TEXT,
+          tags TEXT,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create analysis_results table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS analysis_results (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          type TEXT NOT NULL CHECK (type IN ('timeline', 'causal', 'performance', 'security', 'correlation', 'statistical')),
+          hypothesis TEXT,
+          confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+          evidence_supporting TEXT,
+          evidence_contradicting TEXT,
+          conclusions TEXT,
+          recommendations TEXT,
+          methodology TEXT,
+          limitations TEXT,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create findings table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS findings (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+          category TEXT NOT NULL,
+          evidence_ids TEXT,
+          confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+          impact TEXT,
+          likelihood TEXT CHECK (likelihood IN ('low', 'medium', 'high')),
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create timeline_events table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS timeline_events (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          timestamp DATETIME NOT NULL,
+          event_type TEXT NOT NULL,
+          description TEXT NOT NULL,
+          source TEXT NOT NULL,
+          evidence_id TEXT,
+          related_events TEXT,
+          metadata TEXT,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE,
+          FOREIGN KEY (evidence_id) REFERENCES evidence (id) ON DELETE SET NULL
+        )
+      `);
+
+      // Create causal_relationships table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS causal_relationships (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          cause_event_id TEXT NOT NULL,
+          effect_event_id TEXT NOT NULL,
+          relationship_type TEXT NOT NULL CHECK (relationship_type IN ('direct', 'contributing', 'correlated')),
+          confidence REAL NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+          evidence_ids TEXT,
+          description TEXT,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create reports table
+      await this.run(`
+        CREATE TABLE IF NOT EXISTS reports (
+          id TEXT PRIMARY KEY,
+          investigation_id TEXT NOT NULL,
+          format TEXT NOT NULL CHECK (format IN ('json', 'markdown', 'pdf', 'html')),
+          content TEXT NOT NULL,
+          generated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          generated_by TEXT NOT NULL,
+          includes_evidence BOOLEAN NOT NULL DEFAULT 0,
+          includes_timeline BOOLEAN NOT NULL DEFAULT 0,
+          includes_analysis BOOLEAN NOT NULL DEFAULT 0,
+          file_path TEXT,
+          FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create indexes for better performance
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_investigations_status ON investigations (status)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_investigations_severity ON investigations (severity)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_investigations_category ON investigations (category)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_investigations_created_at ON investigations (created_at)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_evidence_investigation_id ON evidence (investigation_id)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_evidence_type ON evidence (type)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_analysis_investigation_id ON analysis_results (investigation_id)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_timeline_investigation_id ON timeline_events (investigation_id)`);
+      await this.run(`CREATE INDEX IF NOT EXISTS idx_timeline_timestamp ON timeline_events (timestamp)`);
+
+      this.initialized = true;
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to initialize database: ${error}`,
+        'DATABASE_INIT_ERROR',
+        undefined,
+        { error }
+      );
+    }
+  }
+
+  async createInvestigation(case_: InvestigationCase): Promise<void> {
+    try {
+      await this.run(`
+        INSERT INTO investigations (
+          id, title, description, status, severity, category, priority,
+          reported_by, assigned_to, affected_systems, metadata,
+          root_causes, contributing_factors, recommendations
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        case_.id,
+        case_.title,
+        case_.description,
+        case_.status,
+        case_.severity,
+        case_.category,
+        case_.priority,
+        case_.reported_by,
+        case_.assigned_to || null,
+        JSON.stringify(case_.affected_systems),
+        JSON.stringify(case_.metadata),
+        JSON.stringify(case_.root_causes),
+        JSON.stringify(case_.contributing_factors),
+        JSON.stringify(case_.recommendations)
+      ]);
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to create investigation: ${error}`,
+        'DATABASE_CREATE_ERROR',
+        case_.id,
+        { error }
+      );
+    }
+  }
+
+  async getInvestigation(id: string): Promise<InvestigationCase | null> {
+    try {
+      const row: any = await this.get('SELECT * FROM investigations WHERE id = ?', [id]);
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        severity: row.severity,
+        category: row.category,
+        priority: row.priority,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        reported_by: row.reported_by,
+        assigned_to: row.assigned_to,
+        affected_systems: JSON.parse(row.affected_systems || '[]'),
+        evidence: [], // Will be loaded separately if needed
+        analysis_results: [], // Will be loaded separately if needed
+        findings: [], // Will be loaded separately if needed
+        root_causes: JSON.parse(row.root_causes || '[]'),
+        contributing_factors: JSON.parse(row.contributing_factors || '[]'),
+        recommendations: JSON.parse(row.recommendations || '[]'),
+        metadata: JSON.parse(row.metadata || '{}')
+      };
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to get investigation: ${error}`,
+        'DATABASE_GET_ERROR',
+        id,
+        { error }
+      );
+    }
+  }
+
+  async listInvestigations(filters: InvestigationFilters = {}): Promise<InvestigationCase[]> {
+    try {
+      let query = 'SELECT * FROM investigations WHERE 1=1';
+      const params: any[] = [];
+
+      if (filters.status) {
+        query += ' AND status = ?';
+        params.push(filters.status);
+      }
+
+      if (filters.category) {
+        query += ' AND category = ?';
+        params.push(filters.category);
+      }
+
+      if (filters.severity) {
+        query += ' AND severity = ?';
+        params.push(filters.severity);
+      }
+
+      if (filters.priority) {
+        query += ' AND priority = ?';
+        params.push(filters.priority);
+      }
+
+      if (filters.assigned_to) {
+        query += ' AND assigned_to = ?';
+        params.push(filters.assigned_to);
+      }
+
+      if (filters.date_range) {
+        query += ' AND created_at >= ? AND created_at <= ?';
+        params.push(filters.date_range.start.toISOString(), filters.date_range.end.toISOString());
+      }
+
+      query += ' ORDER BY created_at DESC';
+
+      if (filters.limit) {
+        query += ' LIMIT ?';
+        params.push(filters.limit);
+      }
+
+      if (filters.offset) {
+        query += ' OFFSET ?';
+        params.push(filters.offset);
+      }
+
+      const rows: any[] = await this.all(query, params);
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        severity: row.severity,
+        category: row.category,
+        priority: row.priority,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        reported_by: row.reported_by,
+        assigned_to: row.assigned_to,
+        affected_systems: JSON.parse(row.affected_systems || '[]'),
+        evidence: [],
+        analysis_results: [],
+        findings: [],
+        root_causes: JSON.parse(row.root_causes || '[]'),
+        contributing_factors: JSON.parse(row.contributing_factors || '[]'),
+        recommendations: JSON.parse(row.recommendations || '[]'),
+        metadata: JSON.parse(row.metadata || '{}')
+      }));
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to list investigations: ${error}`,
+        'DATABASE_LIST_ERROR',
+        undefined,
+        { error }
+      );
+    }
+  }
+
+  async updateInvestigation(id: string, updates: Partial<InvestigationCase>): Promise<void> {
+    try {
+      const fields: string[] = [];
+      const values: any[] = [];
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (key === 'affected_systems' || key === 'metadata' || 
+            key === 'root_causes' || key === 'contributing_factors' || 
+            key === 'recommendations') {
+          fields.push(`${key} = ?`);
+          values.push(JSON.stringify(value));
+        } else if (key !== 'id' && key !== 'created_at') {
+          fields.push(`${key} = ?`);
+          values.push(value);
+        }
+      });
+
+      if (fields.length === 0) return;
+
+      fields.push('updated_at = CURRENT_TIMESTAMP');
+      values.push(id);
+
+      await this.run(
+        `UPDATE investigations SET ${fields.join(', ')} WHERE id = ?`,
+        values
+      );
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to update investigation: ${error}`,
+        'DATABASE_UPDATE_ERROR',
+        id,
+        { error }
+      );
+    }
+  }
+
+  async addEvidence(evidence: EvidenceItem): Promise<void> {
+    try {
+      await this.run(`
+        INSERT INTO evidence (
+          id, investigation_id, type, source, path, content, metadata,
+          chain_of_custody, tags, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        evidence.id,
+        evidence.investigation_id,
+        evidence.type,
+        evidence.source,
+        evidence.path || null,
+        JSON.stringify(evidence.content),
+        JSON.stringify(evidence.metadata),
+        JSON.stringify(evidence.chain_of_custody),
+        JSON.stringify(evidence.tags),
+        evidence.created_at.toISOString()
+      ]);
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to add evidence: ${error}`,
+        'DATABASE_ADD_EVIDENCE_ERROR',
+        evidence.investigation_id,
+        { error }
+      );
+    }
+  }
+
+  async getEvidence(investigationId: string): Promise<EvidenceItem[]> {
+    try {
+      const rows: any[] = await this.all(
+        'SELECT * FROM evidence WHERE investigation_id = ? ORDER BY created_at ASC',
+        [investigationId]
+      );
+
+      return rows.map((row: any) => ({
+        id: row.id,
+        investigation_id: row.investigation_id,
+        type: row.type,
+        source: row.source,
+        path: row.path,
+        content: JSON.parse(row.content),
+        metadata: JSON.parse(row.metadata),
+        chain_of_custody: JSON.parse(row.chain_of_custody || '[]'),
+        tags: JSON.parse(row.tags || '[]'),
+        created_at: new Date(row.created_at)
+      }));
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to get evidence: ${error}`,
+        'DATABASE_GET_EVIDENCE_ERROR',
+        investigationId,
+        { error }
+      );
+    }
+  }
+
+  async close(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
+  // Helper methods for database operations
+  private run(sql: string, params: any[] = []): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.run(sql, params, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
+  private get(sql: string, params: any[] = []): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.db.get(sql, params, (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+  }
+
+  private all(sql: string, params: any[] = []): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.db.all(sql, params, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
+}

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  investigations-mcp:
+    build: .
+    container_name: investigations-mcp
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    environment:
+      - NODE_ENV=production
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

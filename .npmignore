@@ -1,0 +1,41 @@
+# Source files
+src/
+*.ts
+tsconfig.json
+
+# Development files
+.eslintrc.js
+.gitignore
+docker-compose*.yml
+Dockerfile*
+scripts/
+
+# Test files
+__tests__/
+*.test.ts
+*.test.js
+
+# Documentation (keep README.md and examples/)
+INVESTIGATIONS_DESIGN.md
+IMPLEMENTATION_PLAN.md
+EXAMPLE_USAGE.md
+SUMMARY.md
+
+# Development data
+data/
+reports/
+*.db
+*.log
+
+# Node modules
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  investigations-mcp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: investigations-mcp-dev
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    networks:
+      - mcp-dev-network
+
+networks:
+  mcp-dev-network:
+    driver: bridge
