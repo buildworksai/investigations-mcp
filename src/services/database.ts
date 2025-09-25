@@ -46,7 +46,8 @@ export class InvestigationDatabase {
           metadata TEXT,
           root_causes TEXT,
           contributing_factors TEXT,
-          recommendations TEXT
+          recommendations TEXT,
+          findings TEXT
         )
       `);
 
@@ -182,8 +183,8 @@ export class InvestigationDatabase {
         INSERT INTO investigations (
           id, title, description, status, severity, category, priority,
           reported_by, assigned_to, affected_systems, metadata,
-          root_causes, contributing_factors, recommendations
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          root_causes, contributing_factors, recommendations, findings
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         case_.id,
         case_.title,
@@ -198,7 +199,8 @@ export class InvestigationDatabase {
         JSON.stringify(case_.metadata),
         JSON.stringify(case_.root_causes),
         JSON.stringify(case_.contributing_factors),
-        JSON.stringify(case_.recommendations)
+        JSON.stringify(case_.recommendations),
+        JSON.stringify(case_.findings)
       ]);
     } catch (error) {
       throw new InvestigationError(
@@ -230,7 +232,7 @@ export class InvestigationDatabase {
         affected_systems: JSON.parse(row.affected_systems || '[]'),
         evidence: [], // Will be loaded separately if needed
         analysis_results: [], // Will be loaded separately if needed
-        findings: [], // Will be loaded separately if needed
+        findings: JSON.parse(row.findings || '[]'),
         root_causes: JSON.parse(row.root_causes || '[]'),
         contributing_factors: JSON.parse(row.contributing_factors || '[]'),
         recommendations: JSON.parse(row.recommendations || '[]'),
@@ -326,41 +328,6 @@ export class InvestigationDatabase {
     }
   }
 
-  async updateInvestigation(id: string, updates: Partial<InvestigationCase>): Promise<void> {
-    try {
-      const fields: string[] = [];
-      const values: any[] = [];
-
-      Object.entries(updates).forEach(([key, value]) => {
-        if (key === 'affected_systems' || key === 'metadata' || 
-            key === 'root_causes' || key === 'contributing_factors' || 
-            key === 'recommendations') {
-          fields.push(`${key} = ?`);
-          values.push(JSON.stringify(value));
-        } else if (key !== 'id' && key !== 'created_at') {
-          fields.push(`${key} = ?`);
-          values.push(value);
-        }
-      });
-
-      if (fields.length === 0) return;
-
-      fields.push('updated_at = CURRENT_TIMESTAMP');
-      values.push(id);
-
-      await this.run(
-        `UPDATE investigations SET ${fields.join(', ')} WHERE id = ?`,
-        values
-      );
-    } catch (error) {
-      throw new InvestigationError(
-        `Failed to update investigation: ${error}`,
-        'DATABASE_UPDATE_ERROR',
-        id,
-        { error }
-      );
-    }
-  }
 
   async addEvidence(evidence: EvidenceItem): Promise<void> {
     try {
@@ -415,6 +382,81 @@ export class InvestigationDatabase {
         `Failed to get evidence: ${error}`,
         'DATABASE_GET_EVIDENCE_ERROR',
         investigationId,
+        { error }
+      );
+    }
+  }
+
+  async updateInvestigation(id: string, updates: Partial<InvestigationCase>): Promise<void> {
+    try {
+      const setClauses: string[] = [];
+      const params: any[] = [];
+
+      if (updates.title !== undefined) {
+        setClauses.push('title = ?');
+        params.push(updates.title);
+      }
+      if (updates.description !== undefined) {
+        setClauses.push('description = ?');
+        params.push(updates.description);
+      }
+      if (updates.status !== undefined) {
+        setClauses.push('status = ?');
+        params.push(updates.status);
+      }
+      if (updates.severity !== undefined) {
+        setClauses.push('severity = ?');
+        params.push(updates.severity);
+      }
+      if (updates.category !== undefined) {
+        setClauses.push('category = ?');
+        params.push(updates.category);
+      }
+      if (updates.priority !== undefined) {
+        setClauses.push('priority = ?');
+        params.push(updates.priority);
+      }
+      if (updates.assigned_to !== undefined) {
+        setClauses.push('assigned_to = ?');
+        params.push(updates.assigned_to);
+      }
+      if (updates.affected_systems !== undefined) {
+        setClauses.push('affected_systems = ?');
+        params.push(JSON.stringify(updates.affected_systems));
+      }
+      if (updates.metadata !== undefined) {
+        setClauses.push('metadata = ?');
+        params.push(JSON.stringify(updates.metadata));
+      }
+      if (updates.root_causes !== undefined) {
+        setClauses.push('root_causes = ?');
+        params.push(JSON.stringify(updates.root_causes));
+      }
+      if (updates.contributing_factors !== undefined) {
+        setClauses.push('contributing_factors = ?');
+        params.push(JSON.stringify(updates.contributing_factors));
+      }
+      if (updates.recommendations !== undefined) {
+        setClauses.push('recommendations = ?');
+        params.push(JSON.stringify(updates.recommendations));
+      }
+      if (updates.findings !== undefined) {
+        setClauses.push('findings = ?');
+        params.push(JSON.stringify(updates.findings));
+      }
+
+      setClauses.push('updated_at = CURRENT_TIMESTAMP');
+      params.push(id);
+
+      await this.run(
+        `UPDATE investigations SET ${setClauses.join(', ')} WHERE id = ?`,
+        params
+      );
+    } catch (error) {
+      throw new InvestigationError(
+        `Failed to update investigation: ${error}`,
+        'DATABASE_UPDATE_ERROR',
+        id,
         { error }
       );
     }
