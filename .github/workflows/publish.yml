@@ -13,6 +13,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      repository-projects: write
 
     steps:
       - name: Checkout code
@@ -42,6 +43,28 @@ jobs:
         run: npm publish --access public --registry https://registry.npmjs.org
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@buildworksai'
+
+      - name: Publish to GitHub Packages
+        run: |
+          # Create a separate package.json for GitHub Packages
+          cp package.json package.json.backup
+          jq '.name = "@buildworksai/investigations-mcp" | .publishConfig.registry = "https://npm.pkg.github.com"' package.json > package.json.gh
+          mv package.json.gh package.json
+          
+          # Publish to GitHub Packages
+          npm publish || echo "GitHub Packages publish failed, but npm publish succeeded"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore original package.json
+        run: mv package.json.backup package.json
 
       - name: Create GitHub Release
         run: |
