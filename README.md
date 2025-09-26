@@ -16,9 +16,13 @@ Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol
 - **Performance Metrics**: Collect CPU, memory, disk, and network metrics
 - **Network Analysis**: Gather connection, interface, and routing information
 - **Process Information**: Collect running processes and system state
-- **Security Data**: Gather user accounts, permissions, and security logs
-- **Database Information**: Collect query results and database state
 - **Filesystem Data**: Gather file system information and directory contents
+- **Database Information**: Collect query results and database state
+- **Security Data**: Users, permissions, security logs, open ports, running services, file integrity, suspicious processes, vulnerability scan
+- **Infrastructure**: System, hardware, software, services, load balancer, proxies with scoring
+- **Container**: Docker info, containers, images, volumes, networks with scoring
+- **Cloud**: Cloud provider, instance metadata, security groups with scoring
+- **Monitoring**: Tools, alerts, metrics history, health checks, dashboards with scoring
 
 ### 🧠 Analysis Engine Tools
 - **Timeline Analysis**: Chronological reconstruction of events
@@ -29,10 +33,14 @@ Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol
 - **Statistical Analysis**: Detect anomalies and patterns
 
 ### 📋 Reporting Tools
-- **Multi-Format Reports**: Generate reports in JSON, Markdown, HTML, and PDF
+- **Multi-Format Reports**: Generate reports in JSON, Markdown, HTML, PDF, XML, YAML, CSV, Excel, and PowerPoint
 - **Comprehensive Documentation**: Include evidence, analysis, timeline, and recommendations
 - **Professional Layout**: Executive summaries and detailed findings
 - **Audit Trails**: Complete chain of custody documentation
+
+### 🧩 Visualization & Integrations
+- **Visualization Tools**: Timeline, evidence flow, analysis confidence, severity distribution, category breakdown, network diagram, process flow
+- **API Integrations**: Slack, Jira, Confluence, GitHub, GitLab, Jenkins, Prometheus, Grafana, Elasticsearch, Splunk
 
 ## Installation
 
@@ -259,11 +267,14 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.10 (Current)
+### v2.0.12 (Current)
+- README updated: new collectors, 9 report formats, visualization & integrations
+- No functional code changes; docs and packaging only
+
+### v2.0.10
 - Fix report date handling and null-safety
 - Harden security/infrastructure scoring
 - Add DB migration for new evidence types
-- Add local terminal E2E script (no IDE needed)
 
 ### v2.0.9
 - Minor fixes and TS typing hardening
