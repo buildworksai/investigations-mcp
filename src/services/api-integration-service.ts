@@ -98,7 +98,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Slack action: ${action}`);
+    throw new InvestigationError(`Unsupported Slack action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Jira Integration
@@ -121,7 +121,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Jira action: ${action}`);
+    throw new InvestigationError(`Unsupported Jira action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Confluence Integration
@@ -144,7 +144,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Confluence action: ${action}`);
+    throw new InvestigationError(`Unsupported Confluence action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // GitHub Integration
@@ -167,7 +167,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported GitHub action: ${action}`);
+    throw new InvestigationError(`Unsupported GitHub action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // GitLab Integration
@@ -190,7 +190,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported GitLab action: ${action}`);
+    throw new InvestigationError(`Unsupported GitLab action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Jenkins Integration
@@ -211,7 +211,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Jenkins action: ${action}`);
+    throw new InvestigationError(`Unsupported Jenkins action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Prometheus Integration
@@ -234,7 +234,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Prometheus action: ${action}`);
+    throw new InvestigationError(`Unsupported Prometheus action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Grafana Integration
@@ -257,7 +257,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Grafana action: ${action}`);
+    throw new InvestigationError(`Unsupported Grafana action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Elasticsearch Integration
@@ -280,7 +280,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Elasticsearch action: ${action}`);
+    throw new InvestigationError(`Unsupported Elasticsearch action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Splunk Integration
@@ -306,7 +306,7 @@ export class APIIntegrationService {
       };
     }
     
-    throw new InvestigationError(`Unsupported Splunk action: ${action}`);
+    throw new InvestigationError(`Unsupported Splunk action: ${action}`, 'UNSUPPORTED_ACTION', options.investigation.id);
   }
 
   // Helper methods for formatting data

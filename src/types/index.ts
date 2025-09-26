@@ -16,18 +16,19 @@ export interface InvestigationCase {
   assigned_to?: string;
   affected_systems: string[];
   evidence: EvidenceItem[];
+  analysis: AnalysisResult[];
   analysis_results: AnalysisResult[];
   findings: Finding[];
   root_causes: string[];
   contributing_factors: string[];
-  recommendations: string[];
+  recommendations: Recommendation[];
   metadata: Record<string, any>;
 }
 
 export interface EvidenceItem {
   id: string;
   investigation_id: string;
-  type: 'log' | 'config' | 'metric' | 'network' | 'process' | 'filesystem' | 'database' | 'security';
+  type: 'log' | 'config' | 'metric' | 'network' | 'process' | 'filesystem' | 'database' | 'security' | 'infrastructure' | 'container' | 'cloud' | 'monitoring';
   source: string;
   path?: string;
   content: any;
@@ -90,6 +91,15 @@ export interface Finding {
   created_at: Date;
 }
 
+export interface Recommendation {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  category: string;
+  created_at: Date;
+}
+
 export interface TimelineEvent {
   id: string;
   investigation_id: string;
@@ -116,7 +126,7 @@ export interface CausalRelationship {
 export interface InvestigationReport {
   id: string;
   investigation_id: string;
-  format: 'json' | 'markdown' | 'pdf' | 'html';
+  format: 'json' | 'markdown' | 'pdf' | 'html' | 'xml' | 'yaml' | 'csv' | 'excel' | 'powerpoint';
   content: string;
   generated_at: Date;
   generated_by: string;

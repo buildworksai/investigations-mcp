@@ -128,6 +128,7 @@ class InvestigationMCPServer {
       assigned_to: args.assigned_to,
       affected_systems: args.affected_systems || [],
       evidence: [],
+      analysis: [],
       analysis_results: [],
       findings: [],
       root_causes: [],

@@ -101,7 +101,7 @@ export class ReportGenerator {
 
       // Save report to file if output path is specified
       if (output_path || format !== 'json') {
-        const fileName = output_path || `${investigation.id}_report_${Date.now()}.${format}`;
+        const fileName = output_path || `${investigation.id}_report_${Date.now()}.${format === 'excel' ? 'html' : format === 'powerpoint' ? 'html' : format}`;
         filePath = join(this.outputDir, fileName);
         await writeFile(filePath, content, 'utf-8');
       }
@@ -602,9 +602,9 @@ export class ReportGenerator {
     return `<recommendations>
     ${investigation.recommendations.map(rec => `
     <recommendation>
-      <title>${rec.title}</title>
-      <description>${rec.description}</description>
-      <priority>${rec.priority}</priority>
+      <title>${typeof rec === 'string' ? rec : rec.title}</title>
+      <description>${typeof rec === 'string' ? rec : rec.description}</description>
+      <priority>${typeof rec === 'string' ? 'medium' : rec.priority}</priority>
     </recommendation>`).join('')}
   </recommendations>`;
   }
@@ -629,9 +629,9 @@ ${investigation.analysis.map(analysis => `  - id: ${analysis.id}
 
   private generateYAMLRecommendationsSection(investigation: InvestigationCase): string {
     return `recommendations:
-${investigation.recommendations.map(rec => `  - title: "${rec.title}"
-    description: "${rec.description}"
-    priority: ${rec.priority}`).join('\n')}`;
+${investigation.recommendations.map(rec => `  - title: "${typeof rec === 'string' ? rec : rec.title}"
+    description: "${typeof rec === 'string' ? rec : rec.description}"
+    priority: ${typeof rec === 'string' ? 'medium' : rec.priority}`).join('\n')}`;
   }
 
   // Helper methods for Excel generation
@@ -687,7 +687,7 @@ ${investigation.recommendations.map(rec => `  - title: "${rec.title}"
     return `<div class="slide">
         <h1>Recommendations</h1>
         <ul>
-            ${investigation.recommendations.map(rec => `<li><strong>${rec.title}:</strong> ${rec.description}</li>`).join('')}
+            ${investigation.recommendations.map(rec => `<li><strong>${typeof rec === 'string' ? rec : rec.title}:</strong> ${typeof rec === 'string' ? rec : rec.description}</li>`).join('')}
         </ul>
     </div>`;
   }

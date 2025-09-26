@@ -62,7 +62,7 @@ export class VisualizationService {
           content = await this.generateProcessFlowVisualization(investigation, { width, height, theme, include_labels, interactive });
           break;
         default:
-          throw new InvestigationError(`Unsupported visualization type: ${type}`);
+          throw new InvestigationError(`Unsupported visualization type: ${type}`, 'UNSUPPORTED_VISUALIZATION_TYPE', options.investigation.id);
       }
 
       // Convert to requested format
@@ -282,12 +282,12 @@ export class VisualizationService {
   </defs>
   
   <!-- Network edges -->
-  ${networkData.edges.map(edge => `
+  ${networkData.edges.map((edge: any) => `
     <line x1="${edge.from.x}" y1="${edge.from.y}" x2="${edge.to.x}" y2="${edge.to.y}" class="edge"/>
   `).join('')}
   
   <!-- Network nodes -->
-  ${networkData.nodes.map(node => `
+  ${networkData.nodes.map((node: any) => `
     <circle cx="${node.x}" cy="${node.y}" r="20" class="node"/>
     <text x="${node.x}" y="${node.y + 5}" class="node-text">${node.label}</text>
   `).join('')}
@@ -445,8 +445,8 @@ export class VisualizationService {
   }
 
   private extractNetworkDiagramData(investigation: InvestigationCase): any {
-    const nodes = [];
-    const edges = [];
+    const nodes: any[] = [];
+    const edges: any[] = [];
     
     // Create nodes for evidence sources
     investigation.evidence.forEach((evidence, index) => {

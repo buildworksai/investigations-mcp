@@ -286,6 +286,7 @@ export class InvestigationDatabase {
         assigned_to: row.assigned_to,
         affected_systems: JSON.parse(row.affected_systems || '[]'),
         evidence: [], // Will be loaded separately if needed
+        analysis: [], // Will be loaded separately if needed
         analysis_results: [], // Will be loaded separately if needed
         findings: JSON.parse(row.findings || '[]'),
         root_causes: JSON.parse(row.root_causes || '[]'),
@@ -366,6 +367,7 @@ export class InvestigationDatabase {
         assigned_to: row.assigned_to,
         affected_systems: JSON.parse(row.affected_systems || '[]'),
         evidence: [],
+        analysis: [],
         analysis_results: [],
         findings: [],
         root_causes: JSON.parse(row.root_causes || '[]'),
