@@ -235,12 +235,15 @@ For questions, issues, or contributions:
 - [x] Evidence collection from common sources
 - [x] Simple analysis and reporting
 - [x] SQLite database setup
+- [x] MCP server implementation
+- [x] npm and GitHub Packages publishing
+- [x] Docker containerization
 
-### Phase 2: Advanced Analysis (In Progress)
-- [ ] Sophisticated causal analysis
-- [ ] Hypothesis validation with confidence scoring
-- [ ] Enhanced timeline reconstruction
-- [ ] Multi-source evidence correlation
+### Phase 2: Advanced Analysis ✅
+- [x] Sophisticated causal analysis
+- [x] Hypothesis validation with confidence scoring
+- [x] Enhanced timeline reconstruction
+- [x] Multi-source evidence correlation
 
 ### Phase 3: Specialized Tools (Planned)
 - [ ] Security forensics capabilities
@@ -256,8 +259,44 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v1.0.0 (Current)
-- Initial release with core investigation framework
+### v2.0.7 (Current)
+- Fixed package name consistency (buildworks-ai-investigations-mcp)
+- Resolved duplicate package issue on npm
+- Updated documentation to reflect correct package name
+- Improved workflow for dual publishing (npm + GitHub Packages)
+- Enhanced database persistence and error handling
+- All 10 MCP tools fully functional and tested
+
+### v2.0.6
+- Added GitHub Packages publishing support
+- Copied successful workflow from decision-mcp
+- Dual publishing to both npm and GitHub Packages
+- Improved error handling and debugging
+
+### v2.0.5
+- Tested GitHub Packages publishing with proper permissions
+- Enhanced workflow configuration
+- Better authentication handling
+
+### v2.0.4
+- Added GitHub Packages publishing to workflow
+- Dual publishing for maximum visibility
+- Enhanced package metadata
+
+### v2.0.3
+- Fixed SQLITE_CANTOPEN database error
+- Improved database path resolution for sandboxed environments
+- Enhanced error handling and logging
+- Tested in Windsurf IDE and Docker
+
+### v2.0.2
+- Database persistence improvements
+- Better file system permissions handling
+- Enhanced Docker compatibility
+
+### v2.0.1
+- Initial npm publication
+- Core investigation framework
 - Basic evidence collection and analysis
 - Timeline reconstruction and causal tracing
 - Multi-format report generation

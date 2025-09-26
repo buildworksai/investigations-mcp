@@ -32,7 +32,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           CURRENT=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view investigations-mcp version || echo '0.0.0')
+          PUBLISHED=$(npm view buildworks-ai-investigations-mcp version || echo '0.0.0')
           echo "npmjs current=${CURRENT} published=${PUBLISHED}"
           if [ "$CURRENT" != "$PUBLISHED" ]; then
             npm publish --loglevel=verbose
