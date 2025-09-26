@@ -1,10 +1,9 @@
-name: Publish Package
+name: Publish
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 jobs:
   publish:
@@ -12,65 +11,78 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
-      repository-projects: write
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 18
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build package
+      - name: Build
         run: npm run build
 
-      - name: Run tests
-        run: npm test || echo "Tests skipped for now"
-
-      - name: Verify npm authentication
-        run: npm whoami
+      - name: Publish to npmjs (unscoped)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          PUBLISHED=$(npm view investigations-mcp version || echo '0.0.0')
+          echo "npmjs current=${CURRENT} published=${PUBLISHED}"
+          if [ "$CURRENT" != "$PUBLISHED" ]; then
+            npm publish --loglevel=verbose
+          else
+            echo "Skip npmjs publish: ${CURRENT} already published"
+          fi
 
-      - name: Publish to npm
-        run: npm publish --access public --registry https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Configure GitHub Packages registry
+        run: |
+          cp package.json package.npm.json
+          node -e '
+            const fs = require("fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            pkg.name = "@buildworksai/investigations-mcp";
+            pkg.publishConfig = { registry: "https://npm.pkg.github.com" };
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+          '
+          echo "@buildworksai:registry=https://npm.pkg.github.com" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
+          echo "always-auth=true" >> ~/.npmrc
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          registry-url: 'https://npm.pkg.github.com'
+          node-version: 18
+          registry-url: https://npm.pkg.github.com
           scope: '@buildworksai'
 
-      - name: Publish to GitHub Packages
-        run: |
-          # Create a separate package.json for GitHub Packages
-          cp package.json package.json.backup
-          jq '.name = "@buildworksai/investigations-mcp" | .publishConfig.registry = "https://npm.pkg.github.com"' package.json > package.json.gh
-          mv package.json.gh package.json
-          
-          # Publish to GitHub Packages
-          npm publish || echo "GitHub Packages publish failed, but npm publish succeeded"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Restore original package.json
-        run: mv package.json.backup package.json
-
-      - name: Create GitHub Release
-        run: |
-          echo "Package successfully published to npm!"
-          echo "Version: $(node -p "require('./package.json').version")"
-          echo "Package: $(node -p "require('./package.json').name")"
-          echo "Install with: npm install -g investigations-mcp"
+      - name: Verify GitHub Packages auth and registry
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm config get registry || true
+          npm whoami --registry=https://npm.pkg.github.com || true
+          npm ping --registry=https://npm.pkg.github.com || true
+
+      - name: Publish to GitHub Packages (scoped)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          GH_PUBLISHED=$(npm view @buildworksai/investigations-mcp version --registry=https://npm.pkg.github.com || echo '0.0.0')
+          echo "gh-pkg current=${CURRENT} published=${GH_PUBLISHED}"
+          npm config list -l || true
+          if [ "$CURRENT" != "$GH_PUBLISHED" ]; then
+            npm publish --loglevel=verbose
+          else
+            echo "Skip GH Packages publish: ${CURRENT} already published"
+          fi
+
+      - name: Restore package.json
+        run: mv -f package.npm.json package.json
