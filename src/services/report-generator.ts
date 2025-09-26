@@ -11,13 +11,27 @@ import { InvestigationError } from '../types/index.js';
 
 export interface ReportOptions {
   investigation: InvestigationCase;
-  format: 'json' | 'markdown' | 'pdf' | 'html';
+  format: 'json' | 'markdown' | 'pdf' | 'html' | 'xml' | 'yaml' | 'csv' | 'excel' | 'powerpoint';
   include_evidence?: boolean;
   include_timeline?: boolean;
   include_analysis?: boolean;
   include_recommendations?: boolean;
+  include_visualizations?: boolean;
+  include_executive_summary?: boolean;
+  include_technical_details?: boolean;
+  include_compliance_section?: boolean;
   template?: string;
   output_path?: string;
+  custom_styling?: boolean;
+  branding?: {
+    logo?: string;
+    company_name?: string;
+    colors?: {
+      primary?: string;
+      secondary?: string;
+      accent?: string;
+    };
+  };
 }
 
 export class ReportGenerator {
@@ -61,6 +75,21 @@ export class ReportGenerator {
           // For PDF, we'll generate HTML first and then convert
           const htmlContent = await this.generateHTMLReport(investigation, options);
           content = await this.convertHTMLToPDF(htmlContent);
+          break;
+        case 'xml':
+          content = await this.generateXMLReport(investigation, options);
+          break;
+        case 'yaml':
+          content = await this.generateYAMLReport(investigation, options);
+          break;
+        case 'csv':
+          content = await this.generateCSVReport(investigation, options);
+          break;
+        case 'excel':
+          content = await this.generateExcelReport(investigation, options);
+          break;
+        case 'powerpoint':
+          content = await this.generatePowerPointReport(investigation, options);
           break;
         default:
           throw new InvestigationError(
@@ -413,5 +442,253 @@ export class ReportGenerator {
       status: investigation.status,
       severity: investigation.severity
     };
+  }
+
+  // Advanced Report Generation Methods
+  private async generateXMLReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<investigation_report>
+  <metadata>
+    <id>${investigation.id}</id>
+    <title>${investigation.title}</title>
+    <description>${investigation.description}</description>
+    <severity>${investigation.severity}</severity>
+    <category>${investigation.category}</category>
+    <status>${investigation.status}</status>
+    <created_at>${investigation.created_at.toISOString()}</created_at>
+    <updated_at>${investigation.updated_at.toISOString()}</updated_at>
+  </metadata>
+  ${options.include_evidence ? this.generateXMLEvidenceSection(investigation) : ''}
+  ${options.include_analysis ? this.generateXMLAnalysisSection(investigation) : ''}
+  ${options.include_recommendations ? this.generateXMLRecommendationsSection(investigation) : ''}
+</investigation_report>`;
+    return xml;
+  }
+
+  private async generateYAMLReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
+    const yaml = `investigation_report:
+  metadata:
+    id: ${investigation.id}
+    title: "${investigation.title}"
+    description: "${investigation.description}"
+    severity: ${investigation.severity}
+    category: ${investigation.category}
+    status: ${investigation.status}
+    created_at: ${investigation.created_at.toISOString()}
+    updated_at: ${investigation.updated_at.toISOString()}
+  ${options.include_evidence ? this.generateYAMLEvidenceSection(investigation) : ''}
+  ${options.include_analysis ? this.generateYAMLAnalysisSection(investigation) : ''}
+  ${options.include_recommendations ? this.generateYAMLRecommendationsSection(investigation) : ''}`;
+    return yaml;
+  }
+
+  private async generateCSVReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
+    let csv = 'Type,ID,Title,Description,Severity,Status,Created,Updated\n';
+    csv += `Investigation,${investigation.id},"${investigation.title}","${investigation.description}",${investigation.severity},${investigation.status},${investigation.created_at.toISOString()},${investigation.updated_at.toISOString()}\n`;
+    
+    if (options.include_evidence) {
+      investigation.evidence.forEach(evidence => {
+        csv += `Evidence,${evidence.id},"${evidence.type}","${evidence.source}",${evidence.tags?.join(';') || ''},collected,${evidence.created_at.toISOString()},${evidence.created_at.toISOString()}\n`;
+      });
+    }
+    
+    if (options.include_analysis) {
+      investigation.analysis.forEach(analysis => {
+        csv += `Analysis,${analysis.id},"${analysis.type}","${analysis.methodology}",${analysis.confidence},completed,${analysis.created_at.toISOString()},${analysis.created_at.toISOString()}\n`;
+      });
+    }
+    
+    return csv;
+  }
+
+  private async generateExcelReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
+    // For Excel, we'll generate a structured HTML table that can be opened in Excel
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Investigation Report - ${investigation.title}</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Investigation Report: ${investigation.title}</h1>
+    <h2>Summary</h2>
+    <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>ID</td><td>${investigation.id}</td></tr>
+        <tr><td>Severity</td><td>${investigation.severity}</td></tr>
+        <tr><td>Category</td><td>${investigation.category}</td></tr>
+        <tr><td>Status</td><td>${investigation.status}</td></tr>
+        <tr><td>Created</td><td>${investigation.created_at.toISOString()}</td></tr>
+        <tr><td>Updated</td><td>${investigation.updated_at.toISOString()}</td></tr>
+    </table>
+    ${options.include_evidence ? this.generateExcelEvidenceSection(investigation) : ''}
+    ${options.include_analysis ? this.generateExcelAnalysisSection(investigation) : ''}
+</body>
+</html>`;
+    return html;
+  }
+
+  private async generatePowerPointReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
+    // For PowerPoint, we'll generate HTML that can be converted to slides
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Investigation Presentation - ${investigation.title}</title>
+    <style>
+        .slide { page-break-after: always; padding: 20px; }
+        .slide:last-child { page-break-after: avoid; }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; }
+        .highlight { background-color: #f39c12; color: white; padding: 5px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h1>Investigation Report</h1>
+        <h2>${investigation.title}</h2>
+        <p><strong>Severity:</strong> <span class="highlight">${investigation.severity}</span></p>
+        <p><strong>Category:</strong> ${investigation.category}</p>
+        <p><strong>Status:</strong> ${investigation.status}</p>
+    </div>
+    
+    <div class="slide">
+        <h1>Executive Summary</h1>
+        <p>${investigation.description}</p>
+        <p><strong>Investigation ID:</strong> ${investigation.id}</p>
+        <p><strong>Duration:</strong> ${Math.round((investigation.updated_at.getTime() - investigation.created_at.getTime()) / (1000 * 60 * 60))} hours</p>
+    </div>
+    
+    ${options.include_evidence ? this.generatePowerPointEvidenceSection(investigation) : ''}
+    ${options.include_analysis ? this.generatePowerPointAnalysisSection(investigation) : ''}
+    ${options.include_recommendations ? this.generatePowerPointRecommendationsSection(investigation) : ''}
+</body>
+</html>`;
+    return html;
+  }
+
+  // Helper methods for XML generation
+  private generateXMLEvidenceSection(investigation: InvestigationCase): string {
+    return `<evidence>
+    ${investigation.evidence.map(evidence => `
+    <item>
+      <id>${evidence.id}</id>
+      <type>${evidence.type}</type>
+      <source>${evidence.source}</source>
+      <created_at>${evidence.created_at.toISOString()}</created_at>
+      <tags>${evidence.tags?.join(',') || ''}</tags>
+    </item>`).join('')}
+  </evidence>`;
+  }
+
+  private generateXMLAnalysisSection(investigation: InvestigationCase): string {
+    return `<analysis>
+    ${investigation.analysis.map(analysis => `
+    <item>
+      <id>${analysis.id}</id>
+      <type>${analysis.type}</type>
+      <confidence>${analysis.confidence}</confidence>
+      <created_at>${analysis.created_at.toISOString()}</created_at>
+    </item>`).join('')}
+  </analysis>`;
+  }
+
+  private generateXMLRecommendationsSection(investigation: InvestigationCase): string {
+    return `<recommendations>
+    ${investigation.recommendations.map(rec => `
+    <recommendation>
+      <title>${rec.title}</title>
+      <description>${rec.description}</description>
+      <priority>${rec.priority}</priority>
+    </recommendation>`).join('')}
+  </recommendations>`;
+  }
+
+  // Helper methods for YAML generation
+  private generateYAMLEvidenceSection(investigation: InvestigationCase): string {
+    return `evidence:
+${investigation.evidence.map(evidence => `  - id: ${evidence.id}
+    type: ${evidence.type}
+    source: ${evidence.source}
+    created_at: ${evidence.created_at.toISOString()}
+    tags: [${evidence.tags?.map(tag => `"${tag}"`).join(', ') || ''}]`).join('\n')}`;
+  }
+
+  private generateYAMLAnalysisSection(investigation: InvestigationCase): string {
+    return `analysis:
+${investigation.analysis.map(analysis => `  - id: ${analysis.id}
+    type: ${analysis.type}
+    confidence: ${analysis.confidence}
+    created_at: ${analysis.created_at.toISOString()}`).join('\n')}`;
+  }
+
+  private generateYAMLRecommendationsSection(investigation: InvestigationCase): string {
+    return `recommendations:
+${investigation.recommendations.map(rec => `  - title: "${rec.title}"
+    description: "${rec.description}"
+    priority: ${rec.priority}`).join('\n')}`;
+  }
+
+  // Helper methods for Excel generation
+  private generateExcelEvidenceSection(investigation: InvestigationCase): string {
+    return `<h2>Evidence</h2>
+    <table>
+        <tr><th>ID</th><th>Type</th><th>Source</th><th>Created</th><th>Tags</th></tr>
+        ${investigation.evidence.map(evidence => `
+        <tr>
+            <td>${evidence.id}</td>
+            <td>${evidence.type}</td>
+            <td>${evidence.source}</td>
+            <td>${evidence.created_at.toISOString()}</td>
+            <td>${evidence.tags?.join(', ') || ''}</td>
+        </tr>`).join('')}
+    </table>`;
+  }
+
+  private generateExcelAnalysisSection(investigation: InvestigationCase): string {
+    return `<h2>Analysis</h2>
+    <table>
+        <tr><th>ID</th><th>Type</th><th>Confidence</th><th>Created</th></tr>
+        ${investigation.analysis.map(analysis => `
+        <tr>
+            <td>${analysis.id}</td>
+            <td>${analysis.type}</td>
+            <td>${analysis.confidence}</td>
+            <td>${analysis.created_at.toISOString()}</td>
+        </tr>`).join('')}
+    </table>`;
+  }
+
+  // Helper methods for PowerPoint generation
+  private generatePowerPointEvidenceSection(investigation: InvestigationCase): string {
+    return `<div class="slide">
+        <h1>Evidence Collected</h1>
+        <ul>
+            ${investigation.evidence.map(evidence => `<li><strong>${evidence.type}:</strong> ${evidence.source}</li>`).join('')}
+        </ul>
+    </div>`;
+  }
+
+  private generatePowerPointAnalysisSection(investigation: InvestigationCase): string {
+    return `<div class="slide">
+        <h1>Analysis Results</h1>
+        <ul>
+            ${investigation.analysis.map(analysis => `<li><strong>${analysis.type}:</strong> Confidence ${Math.round(analysis.confidence * 100)}%</li>`).join('')}
+        </ul>
+    </div>`;
+  }
+
+  private generatePowerPointRecommendationsSection(investigation: InvestigationCase): string {
+    return `<div class="slide">
+        <h1>Recommendations</h1>
+        <ul>
+            ${investigation.recommendations.map(rec => `<li><strong>${rec.title}:</strong> ${rec.description}</li>`).join('')}
+        </ul>
+    </div>`;
   }
 }

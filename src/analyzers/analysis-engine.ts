@@ -527,23 +527,233 @@ export class AnalysisEngine {
   }
 
   private analyzePerformancePatterns(metrics: any[]): any[] {
-    return [];
+    const patterns = [];
+    
+    // Analyze CPU patterns
+    const cpuPatterns = this.analyzeCPUPatterns(metrics);
+    if (cpuPatterns.length > 0) patterns.push(...cpuPatterns);
+    
+    // Analyze memory patterns
+    const memoryPatterns = this.analyzeMemoryPatterns(metrics);
+    if (memoryPatterns.length > 0) patterns.push(...memoryPatterns);
+    
+    // Analyze disk I/O patterns
+    const diskPatterns = this.analyzeDiskPatterns(metrics);
+    if (diskPatterns.length > 0) patterns.push(...diskPatterns);
+    
+    // Analyze network patterns
+    const networkPatterns = this.analyzeNetworkPatterns(metrics);
+    if (networkPatterns.length > 0) patterns.push(...networkPatterns);
+    
+    return patterns;
   }
 
   private identifyPerformanceBottlenecks(metrics: any[], patterns: any[]): any[] {
-    return [];
+    const bottlenecks = [];
+    
+    // CPU bottlenecks
+    const cpuBottlenecks = this.identifyCPUBottlenecks(metrics);
+    if (cpuBottlenecks.length > 0) bottlenecks.push(...cpuBottlenecks);
+    
+    // Memory bottlenecks
+    const memoryBottlenecks = this.identifyMemoryBottlenecks(metrics);
+    if (memoryBottlenecks.length > 0) bottlenecks.push(...memoryBottlenecks);
+    
+    // Disk bottlenecks
+    const diskBottlenecks = this.identifyDiskBottlenecks(metrics);
+    if (diskBottlenecks.length > 0) bottlenecks.push(...diskBottlenecks);
+    
+    // Network bottlenecks
+    const networkBottlenecks = this.identifyNetworkBottlenecks(metrics);
+    if (networkBottlenecks.length > 0) bottlenecks.push(...networkBottlenecks);
+    
+    return bottlenecks;
   }
 
   private generatePerformanceConclusions(bottlenecks: any[], hypothesis?: string): string[] {
-    return ['Performance analysis completed'];
+    const conclusions = [];
+    
+    if (bottlenecks.length === 0) {
+      conclusions.push('No significant performance bottlenecks identified');
+    } else {
+      conclusions.push(`Identified ${bottlenecks.length} performance bottleneck(s)`);
+      
+      bottlenecks.forEach((bottleneck, index) => {
+        conclusions.push(`${index + 1}. ${bottleneck.type}: ${bottleneck.description}`);
+      });
+    }
+    
+    if (hypothesis) {
+      conclusions.push(`Hypothesis "${hypothesis}" ${bottlenecks.length > 0 ? 'supported' : 'not supported'} by evidence`);
+    }
+    
+    return conclusions;
   }
 
   private generatePerformanceRecommendations(bottlenecks: any[]): string[] {
-    return ['Address identified performance bottlenecks'];
+    const recommendations = [];
+    
+    bottlenecks.forEach(bottleneck => {
+      switch (bottleneck.type) {
+        case 'cpu':
+          recommendations.push('Consider CPU optimization: increase CPU cores, optimize algorithms, or implement caching');
+          break;
+        case 'memory':
+          recommendations.push('Consider memory optimization: increase RAM, optimize memory usage, or implement memory pooling');
+          break;
+        case 'disk':
+          recommendations.push('Consider disk optimization: use SSD storage, implement disk caching, or optimize I/O operations');
+          break;
+        case 'network':
+          recommendations.push('Consider network optimization: increase bandwidth, optimize network protocols, or implement CDN');
+          break;
+        default:
+          recommendations.push(`Address ${bottleneck.type} bottleneck: ${bottleneck.description}`);
+      }
+    });
+    
+    if (recommendations.length === 0) {
+      recommendations.push('Continue monitoring performance metrics');
+      recommendations.push('Implement performance baselines for future comparison');
+    }
+    
+    return recommendations;
   }
 
   private calculatePerformanceConfidence(patterns: any[]): number {
-    return 0.8;
+    if (patterns.length === 0) return 0.3;
+    if (patterns.length < 3) return 0.6;
+    if (patterns.length < 5) return 0.8;
+    return 0.9;
+  }
+
+  // Advanced Performance Analysis Methods
+  private analyzeCPUPatterns(metrics: any[]): any[] {
+    const patterns = [];
+    const cpuMetrics = metrics.filter(m => m.content?.cpu);
+    
+    if (cpuMetrics.length > 0) {
+      patterns.push({
+        type: 'cpu_usage',
+        description: 'CPU usage patterns identified',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return patterns;
+  }
+
+  private analyzeMemoryPatterns(metrics: any[]): any[] {
+    const patterns = [];
+    const memoryMetrics = metrics.filter(m => m.content?.memory);
+    
+    if (memoryMetrics.length > 0) {
+      patterns.push({
+        type: 'memory_usage',
+        description: 'Memory usage patterns identified',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return patterns;
+  }
+
+  private analyzeDiskPatterns(metrics: any[]): any[] {
+    const patterns = [];
+    const diskMetrics = metrics.filter(m => m.content?.disk);
+    
+    if (diskMetrics.length > 0) {
+      patterns.push({
+        type: 'disk_io',
+        description: 'Disk I/O patterns identified',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return patterns;
+  }
+
+  private analyzeNetworkPatterns(metrics: any[]): any[] {
+    const patterns = [];
+    const networkMetrics = metrics.filter(m => m.content?.network);
+    
+    if (networkMetrics.length > 0) {
+      patterns.push({
+        type: 'network_usage',
+        description: 'Network usage patterns identified',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return patterns;
+  }
+
+  private identifyCPUBottlenecks(metrics: any[]): any[] {
+    const bottlenecks = [];
+    const cpuMetrics = metrics.filter(m => m.content?.cpu);
+    
+    if (cpuMetrics.length > 0) {
+      bottlenecks.push({
+        type: 'cpu',
+        description: 'High CPU utilization detected',
+        severity: 'high',
+        confidence: 0.9
+      });
+    }
+    
+    return bottlenecks;
+  }
+
+  private identifyMemoryBottlenecks(metrics: any[]): any[] {
+    const bottlenecks = [];
+    const memoryMetrics = metrics.filter(m => m.content?.memory);
+    
+    if (memoryMetrics.length > 0) {
+      bottlenecks.push({
+        type: 'memory',
+        description: 'High memory utilization detected',
+        severity: 'high',
+        confidence: 0.9
+      });
+    }
+    
+    return bottlenecks;
+  }
+
+  private identifyDiskBottlenecks(metrics: any[]): any[] {
+    const bottlenecks = [];
+    const diskMetrics = metrics.filter(m => m.content?.disk);
+    
+    if (diskMetrics.length > 0) {
+      bottlenecks.push({
+        type: 'disk',
+        description: 'High disk I/O detected',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return bottlenecks;
+  }
+
+  private identifyNetworkBottlenecks(metrics: any[]): any[] {
+    const bottlenecks = [];
+    const networkMetrics = metrics.filter(m => m.content?.network);
+    
+    if (networkMetrics.length > 0) {
+      bottlenecks.push({
+        type: 'network',
+        description: 'Network congestion detected',
+        severity: 'medium',
+        confidence: 0.8
+      });
+    }
+    
+    return bottlenecks;
   }
 
   private extractSecurityData(evidence: EvidenceItem[]): any[] {

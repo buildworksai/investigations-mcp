@@ -32,7 +32,11 @@ export class EvidenceCollector {
       ['process', this.collectProcessInfo.bind(this)],
       ['filesystem', this.collectFilesystemInfo.bind(this)],
       ['database', this.collectDatabaseInfo.bind(this)],
-      ['security', this.collectSecurityInfo.bind(this)]
+      ['security', this.collectSecurityInfo.bind(this)],
+      ['infrastructure', this.collectInfrastructureInfo.bind(this)],
+      ['container', this.collectContainerInfo.bind(this)],
+      ['cloud', this.collectCloudInfo.bind(this)],
+      ['monitoring', this.collectMonitoringInfo.bind(this)]
     ]);
   }
 
@@ -382,10 +386,28 @@ export class EvidenceCollector {
     let content: any;
 
     try {
-      const [users, permissions, securityLogs] = await Promise.all([
+      const [
+        users, 
+        permissions, 
+        securityLogs, 
+        networkConnections,
+        openPorts,
+        runningServices,
+        fileIntegrity,
+        suspiciousProcesses,
+        malwareSignatures,
+        vulnerabilityScan
+      ] = await Promise.all([
         this.getUserInfo(),
         this.getPermissionInfo(),
-        this.getSecurityLogs()
+        this.getSecurityLogs(),
+        this.getNetworkConnections(),
+        this.getOpenPorts(),
+        this.getRunningServices(),
+        this.getFileIntegrityCheck(),
+        this.getSuspiciousProcesses(),
+        this.getMalwareSignatures(),
+        this.getVulnerabilityScan()
       ]);
 
       content = {
@@ -393,6 +415,17 @@ export class EvidenceCollector {
         users,
         permissions,
         security_logs: securityLogs,
+        network_connections: networkConnections,
+        open_ports: openPorts,
+        running_services: runningServices,
+        file_integrity: fileIntegrity,
+        suspicious_processes: suspiciousProcesses,
+        malware_signatures: malwareSignatures,
+        vulnerability_scan: vulnerabilityScan,
+        security_score: this.calculateSecurityScore({
+          users, permissions, securityLogs, networkConnections,
+          openPorts, runningServices, fileIntegrity, suspiciousProcesses
+        }),
         parameters
       };
     } catch (error) {
@@ -414,7 +447,7 @@ export class EvidenceCollector {
       content,
       metadata,
       chain_of_custody: chainOfCustody,
-      tags: ['security', 'evidence'],
+      tags: ['security', 'forensics', 'evidence'],
       created_at: new Date()
     };
   }
@@ -535,6 +568,520 @@ export class EvidenceCollector {
     } catch {
       return { security_logs: 'Unable to collect security logs' };
     }
+  }
+
+  // Advanced Security Forensics Methods
+  private async getOpenPorts(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('netstat -tuln 2>/dev/null || ss -tuln 2>/dev/null || echo "Unable to get open ports"');
+      return { open_ports: stdout };
+    } catch {
+      return { open_ports: 'Unable to collect open ports' };
+    }
+  }
+
+  private async getRunningServices(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('systemctl list-units --type=service --state=running 2>/dev/null || ps aux | grep -E "(httpd|nginx|apache|mysql|postgres)" || echo "Unable to get running services"');
+      return { running_services: stdout };
+    } catch {
+      return { running_services: 'Unable to collect running services' };
+    }
+  }
+
+  private async getFileIntegrityCheck(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('find /etc /bin /sbin -type f -executable -newer /etc/passwd 2>/dev/null | head -20 || echo "Unable to perform file integrity check"');
+      return { file_integrity: stdout };
+    } catch {
+      return { file_integrity: 'Unable to perform file integrity check' };
+    }
+  }
+
+  private async getSuspiciousProcesses(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('ps aux | grep -E "(nc|netcat|nmap|masscan|hydra|john|hashcat)" 2>/dev/null || echo "No suspicious processes found"');
+      return { suspicious_processes: stdout };
+    } catch {
+      return { suspicious_processes: 'Unable to check for suspicious processes' };
+    }
+  }
+
+  private async getMalwareSignatures(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('find /tmp /var/tmp -name "*.sh" -o -name "*.py" -o -name "*.pl" 2>/dev/null | head -10 || echo "No suspicious files found"');
+      return { malware_signatures: stdout };
+    } catch {
+      return { malware_signatures: 'Unable to scan for malware signatures' };
+    }
+  }
+
+  private async getVulnerabilityScan(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('uname -a && cat /etc/os-release 2>/dev/null || echo "Unable to get system info for vulnerability scan"');
+      return { vulnerability_scan: stdout };
+    } catch {
+      return { vulnerability_scan: 'Unable to perform vulnerability scan' };
+    }
+  }
+
+  private calculateSecurityScore(securityData: any): number {
+    let score = 100; // Start with perfect score
+    
+    // Deduct points for various security issues
+    if (securityData.users?.includes('root')) score -= 10;
+    if (securityData.open_ports?.includes('22')) score -= 5; // SSH
+    if (securityData.open_ports?.includes('80')) score -= 5; // HTTP
+    if (securityData.open_ports?.includes('443')) score -= 5; // HTTPS
+    if (securityData.suspicious_processes?.length > 0) score -= 20;
+    if (securityData.malware_signatures?.length > 0) score -= 30;
+    
+    return Math.max(0, score);
+  }
+
+  // Infrastructure Inspection Tools
+  private async collectInfrastructureInfo(source: EvidenceSource, options: CollectionOptions): Promise<EvidenceItem> {
+    const { parameters } = source;
+    let content: any;
+
+    try {
+      const [
+        systemInfo,
+        hardwareInfo,
+        softwareInfo,
+        serviceStatus,
+        loadBalancerInfo,
+        proxyInfo
+      ] = await Promise.all([
+        this.getSystemInfo(),
+        this.getHardwareInfo(),
+        this.getSoftwareInfo(),
+        this.getServiceStatus(),
+        this.getLoadBalancerInfo(),
+        this.getProxyInfo()
+      ]);
+
+      content = {
+        timestamp: new Date().toISOString(),
+        system_info: systemInfo,
+        hardware_info: hardwareInfo,
+        software_info: softwareInfo,
+        service_status: serviceStatus,
+        load_balancer_info: loadBalancerInfo,
+        proxy_info: proxyInfo,
+        infrastructure_score: this.calculateInfrastructureScore({
+          systemInfo, hardwareInfo, softwareInfo, serviceStatus
+        }),
+        parameters
+      };
+    } catch (error) {
+      throw new EvidenceError(
+        `Failed to collect infrastructure info: ${error}`,
+        undefined,
+        { error }
+      );
+    }
+
+    const metadata = this.createMetadata(source, JSON.stringify(content), null, options);
+    const chainOfCustody = this.createChainOfCustody('collected', options);
+
+    return {
+      id: uuidv4(),
+      investigation_id: options.investigation_id,
+      type: 'infrastructure',
+      source: 'infrastructure_info',
+      content,
+      metadata,
+      chain_of_custody: chainOfCustody,
+      tags: ['infrastructure', 'system', 'evidence'],
+      created_at: new Date()
+    };
+  }
+
+  private async collectContainerInfo(source: EvidenceSource, options: CollectionOptions): Promise<EvidenceItem> {
+    const { parameters } = source;
+    let content: any;
+
+    try {
+      const [
+        dockerInfo,
+        containerList,
+        imageList,
+        volumeInfo,
+        networkInfo
+      ] = await Promise.all([
+        this.getDockerInfo(),
+        this.getContainerList(),
+        this.getImageList(),
+        this.getVolumeInfo(),
+        this.getContainerNetworkInfo()
+      ]);
+
+      content = {
+        timestamp: new Date().toISOString(),
+        docker_info: dockerInfo,
+        containers: containerList,
+        images: imageList,
+        volumes: volumeInfo,
+        networks: networkInfo,
+        container_score: this.calculateContainerScore({
+          dockerInfo, containerList, imageList, volumeInfo
+        }),
+        parameters
+      };
+    } catch (error) {
+      throw new EvidenceError(
+        `Failed to collect container info: ${error}`,
+        undefined,
+        { error }
+      );
+    }
+
+    const metadata = this.createMetadata(source, JSON.stringify(content), null, options);
+    const chainOfCustody = this.createChainOfCustody('collected', options);
+
+    return {
+      id: uuidv4(),
+      investigation_id: options.investigation_id,
+      type: 'container',
+      source: 'container_info',
+      content,
+      metadata,
+      chain_of_custody: chainOfCustody,
+      tags: ['container', 'docker', 'evidence'],
+      created_at: new Date()
+    };
+  }
+
+  private async collectCloudInfo(source: EvidenceSource, options: CollectionOptions): Promise<EvidenceItem> {
+    const { parameters } = source;
+    let content: any;
+
+    try {
+      const [
+        cloudProvider,
+        instanceInfo,
+        storageInfo,
+        networkInfo,
+        securityGroups
+      ] = await Promise.all([
+        this.getCloudProvider(),
+        this.getInstanceInfo(),
+        this.getStorageInfo(),
+        this.getCloudNetworkInfo(),
+        this.getSecurityGroups()
+      ]);
+
+      content = {
+        timestamp: new Date().toISOString(),
+        cloud_provider: cloudProvider,
+        instance_info: instanceInfo,
+        storage_info: storageInfo,
+        network_info: networkInfo,
+        security_groups: securityGroups,
+        cloud_score: this.calculateCloudScore({
+          cloudProvider, instanceInfo, storageInfo, networkInfo
+        }),
+        parameters
+      };
+    } catch (error) {
+      throw new EvidenceError(
+        `Failed to collect cloud info: ${error}`,
+        undefined,
+        { error }
+      );
+    }
+
+    const metadata = this.createMetadata(source, JSON.stringify(content), null, options);
+    const chainOfCustody = this.createChainOfCustody('collected', options);
+
+    return {
+      id: uuidv4(),
+      investigation_id: options.investigation_id,
+      type: 'cloud',
+      source: 'cloud_info',
+      content,
+      metadata,
+      chain_of_custody: chainOfCustody,
+      tags: ['cloud', 'aws', 'azure', 'gcp', 'evidence'],
+      created_at: new Date()
+    };
+  }
+
+  private async collectMonitoringInfo(source: EvidenceSource, options: CollectionOptions): Promise<EvidenceItem> {
+    const { parameters } = source;
+    let content: any;
+
+    try {
+      const [
+        monitoringTools,
+        alertStatus,
+        metricsHistory,
+        healthChecks,
+        dashboards
+      ] = await Promise.all([
+        this.getMonitoringTools(),
+        this.getAlertStatus(),
+        this.getMetricsHistory(),
+        this.getHealthChecks(),
+        this.getDashboards()
+      ]);
+
+      content = {
+        timestamp: new Date().toISOString(),
+        monitoring_tools: monitoringTools,
+        alert_status: alertStatus,
+        metrics_history: metricsHistory,
+        health_checks: healthChecks,
+        dashboards: dashboards,
+        monitoring_score: this.calculateMonitoringScore({
+          monitoringTools, alertStatus, metricsHistory, healthChecks
+        }),
+        parameters
+      };
+    } catch (error) {
+      throw new EvidenceError(
+        `Failed to collect monitoring info: ${error}`,
+        undefined,
+        { error }
+      );
+    }
+
+    const metadata = this.createMetadata(source, JSON.stringify(content), null, options);
+    const chainOfCustody = this.createChainOfCustody('collected', options);
+
+    return {
+      id: uuidv4(),
+      investigation_id: options.investigation_id,
+      type: 'monitoring',
+      source: 'monitoring_info',
+      content,
+      metadata,
+      chain_of_custody: chainOfCustody,
+      tags: ['monitoring', 'alerts', 'metrics', 'evidence'],
+      created_at: new Date()
+    };
+  }
+
+  // Infrastructure Helper Methods
+  private async getSystemInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('uname -a && cat /etc/os-release 2>/dev/null || echo "Unable to get system info"');
+      return { system_info: stdout };
+    } catch {
+      return { system_info: 'Unable to collect system info' };
+    }
+  }
+
+  private async getHardwareInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('lscpu 2>/dev/null || cat /proc/cpuinfo 2>/dev/null || echo "Unable to get hardware info"');
+      return { hardware_info: stdout };
+    } catch {
+      return { hardware_info: 'Unable to collect hardware info' };
+    }
+  }
+
+  private async getSoftwareInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('dpkg -l 2>/dev/null || rpm -qa 2>/dev/null || echo "Unable to get software info"');
+      return { software_info: stdout };
+    } catch {
+      return { software_info: 'Unable to collect software info' };
+    }
+  }
+
+  private async getServiceStatus(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('systemctl list-units --type=service --state=running 2>/dev/null || echo "Unable to get service status"');
+      return { service_status: stdout };
+    } catch {
+      return { service_status: 'Unable to collect service status' };
+    }
+  }
+
+  private async getLoadBalancerInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('nginx -t 2>/dev/null && nginx -T 2>/dev/null || echo "No nginx load balancer found"');
+      return { load_balancer_info: stdout };
+    } catch {
+      return { load_balancer_info: 'Unable to collect load balancer info' };
+    }
+  }
+
+  private async getProxyInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('env | grep -i proxy 2>/dev/null || echo "No proxy configuration found"');
+      return { proxy_info: stdout };
+    } catch {
+      return { proxy_info: 'Unable to collect proxy info' };
+    }
+  }
+
+  private async getDockerInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('docker version 2>/dev/null || echo "Docker not available"');
+      return { docker_info: stdout };
+    } catch {
+      return { docker_info: 'Unable to collect Docker info' };
+    }
+  }
+
+  private async getContainerList(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('docker ps -a 2>/dev/null || echo "No containers found"');
+      return { containers: stdout };
+    } catch {
+      return { containers: 'Unable to collect container list' };
+    }
+  }
+
+  private async getImageList(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('docker images 2>/dev/null || echo "No images found"');
+      return { images: stdout };
+    } catch {
+      return { images: 'Unable to collect image list' };
+    }
+  }
+
+  private async getVolumeInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('docker volume ls 2>/dev/null || echo "No volumes found"');
+      return { volumes: stdout };
+    } catch {
+      return { volumes: 'Unable to collect volume info' };
+    }
+  }
+
+  private async getContainerNetworkInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('docker network ls 2>/dev/null || echo "No networks found"');
+      return { networks: stdout };
+    } catch {
+      return { networks: 'Unable to collect container network info' };
+    }
+  }
+
+  private async getCloudProvider(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null && echo "AWS" || echo "Unknown cloud provider"');
+      return { cloud_provider: stdout };
+    } catch {
+      return { cloud_provider: 'Unable to detect cloud provider' };
+    }
+  }
+
+  private async getInstanceInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://169.254.169.254/latest/meta-data/ 2>/dev/null || echo "Unable to get instance info"');
+      return { instance_info: stdout };
+    } catch {
+      return { instance_info: 'Unable to collect instance info' };
+    }
+  }
+
+  private async getStorageInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('df -h && lsblk 2>/dev/null || echo "Unable to get storage info"');
+      return { storage_info: stdout };
+    } catch {
+      return { storage_info: 'Unable to collect storage info' };
+    }
+  }
+
+  private async getCloudNetworkInfo(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://169.254.169.254/latest/meta-data/network/ 2>/dev/null || echo "Unable to get cloud network info"');
+      return { network_info: stdout };
+    } catch {
+      return { network_info: 'Unable to collect cloud network info' };
+    }
+  }
+
+  private async getSecurityGroups(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://169.254.169.254/latest/meta-data/security-groups 2>/dev/null || echo "Unable to get security groups"');
+      return { security_groups: stdout };
+    } catch {
+      return { security_groups: 'Unable to collect security groups' };
+    }
+  }
+
+  private async getMonitoringTools(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('ps aux | grep -E "(prometheus|grafana|nagios|zabbix)" 2>/dev/null || echo "No monitoring tools found"');
+      return { monitoring_tools: stdout };
+    } catch {
+      return { monitoring_tools: 'Unable to collect monitoring tools info' };
+    }
+  }
+
+  private async getAlertStatus(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('systemctl status alertmanager 2>/dev/null || echo "No alert manager found"');
+      return { alert_status: stdout };
+    } catch {
+      return { alert_status: 'Unable to collect alert status' };
+    }
+  }
+
+  private async getMetricsHistory(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('find /var/lib/prometheus -name "*.db" 2>/dev/null | head -5 || echo "No metrics history found"');
+      return { metrics_history: stdout };
+    } catch {
+      return { metrics_history: 'Unable to collect metrics history' };
+    }
+  }
+
+  private async getHealthChecks(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://localhost:9090/-/healthy 2>/dev/null || echo "No health checks available"');
+      return { health_checks: stdout };
+    } catch {
+      return { health_checks: 'Unable to collect health checks' };
+    }
+  }
+
+  private async getDashboards(): Promise<any> {
+    try {
+      const { stdout } = await execAsync('curl -s http://localhost:3000/api/dashboards 2>/dev/null || echo "No dashboards available"');
+      return { dashboards: stdout };
+    } catch {
+      return { dashboards: 'Unable to collect dashboards' };
+    }
+  }
+
+  // Scoring Methods
+  private calculateInfrastructureScore(data: any): number {
+    let score = 100;
+    // Deduct points for infrastructure issues
+    if (!data.systemInfo?.includes('Linux')) score -= 10;
+    if (!data.hardwareInfo?.includes('CPU')) score -= 5;
+    if (!data.softwareInfo?.includes('package')) score -= 5;
+    return Math.max(0, score);
+  }
+
+  private calculateContainerScore(data: any): number {
+    let score = 100;
+    if (!data.dockerInfo?.includes('Docker')) score -= 20;
+    if (!data.containerList?.includes('CONTAINER')) score -= 10;
+    return Math.max(0, score);
+  }
+
+  private calculateCloudScore(data: any): number {
+    let score = 100;
+    if (!data.cloudProvider?.includes('AWS')) score -= 15;
+    if (!data.instanceInfo?.includes('instance')) score -= 10;
+    return Math.max(0, score);
+  }
+
+  private calculateMonitoringScore(data: any): number {
+    let score = 100;
+    if (!data.monitoringTools?.includes('prometheus')) score -= 20;
+    if (!data.alertStatus?.includes('active')) score -= 15;
+    return Math.max(0, score);
   }
 
   // Utility methods

@@ -245,27 +245,31 @@ For questions, issues, or contributions:
 - [x] Enhanced timeline reconstruction
 - [x] Multi-source evidence correlation
 
-### Phase 3: Specialized Tools (Planned)
-- [ ] Security forensics capabilities
-- [ ] Performance analysis tools
-- [ ] Infrastructure inspection tools
-- [ ] Custom evidence collectors
+### Phase 3: Specialized Tools ✅
+- [x] Security forensics capabilities
+- [x] Performance analysis tools
+- [x] Infrastructure inspection tools
+- [x] Custom evidence collectors
 
-### Phase 4: Integration & Polish (Planned)
-- [ ] Advanced reporting formats
-- [ ] Visualization tools
-- [ ] API integrations
-- [ ] Comprehensive documentation
+### Phase 4: Integration & Polish ✅
+- [x] Advanced reporting formats
+- [x] Visualization tools
+- [x] API integrations
+- [x] Comprehensive documentation
 
 ## Changelog
 
-### v2.0.7 (Current)
-- Fixed package name consistency (buildworks-ai-investigations-mcp)
-- Resolved duplicate package issue on npm
-- Updated documentation to reflect correct package name
-- Improved workflow for dual publishing (npm + GitHub Packages)
-- Enhanced database persistence and error handling
-- All 10 MCP tools fully functional and tested
+### v2.0.8 (Current)
+- **COMPLETED PHASE 3 & 4**: All specialized tools and integrations implemented
+- **Security Forensics**: Advanced security analysis with malware detection, vulnerability scanning, and security scoring
+- **Performance Analysis**: Comprehensive performance bottleneck identification and optimization recommendations
+- **Infrastructure Inspection**: Docker, cloud, and monitoring system analysis with scoring
+- **Advanced Reporting**: 9 report formats (JSON, Markdown, HTML, PDF, XML, YAML, CSV, Excel, PowerPoint)
+- **Visualization Tools**: 7 visualization types (timeline, evidence flow, analysis confidence, severity distribution, category breakdown, network diagram, process flow)
+- **API Integrations**: 10 service integrations (Slack, Jira, Confluence, GitHub, GitLab, Jenkins, Prometheus, Grafana, Elasticsearch, Splunk)
+- **Custom Evidence Collectors**: Infrastructure, container, cloud, and monitoring evidence collection
+- Enhanced analysis engine with advanced performance and security analysis capabilities
+- Comprehensive documentation and examples for all new features
 
 ### v2.0.6
 - Added GitHub Packages publishing support
