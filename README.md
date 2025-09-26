@@ -38,7 +38,7 @@ Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol
 
 1. Install via npm (recommended):
 ```bash
-npm install -g buildworks-ai-investigations-mcp
+npm install -g @buildworksai/investigations-mcp
 ```
 
 Or clone the repository:
@@ -140,7 +140,7 @@ Add to your Cursor settings:
     "servers": {
       "investigations": {
         "command": "npx",
-        "args": ["buildworks-ai-investigations-mcp"],
+        "args": ["@buildworksai/investigations-mcp"],
         "env": {}
       }
     }
@@ -157,7 +157,7 @@ Add to your Windsurf configuration:
     "servers": {
       "investigations": {
         "command": "npx",
-        "args": ["buildworks-ai-investigations-mcp"],
+        "args": ["@buildworksai/investigations-mcp"],
         "env": {}
       }
     }
