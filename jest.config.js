@@ -1,11 +1,6 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
   testEnvironment: 'node',
   transform: {
     '^.+\\.ts$': ['ts-jest', {
@@ -21,5 +16,6 @@ export default {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts'
-  ]
+  ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
 };
