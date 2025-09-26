@@ -41,6 +41,12 @@ export class ReportGenerator {
     this.outputDir = outputDir;
   }
 
+  // Coerce various date-like values to a safe ISO string
+  private toISODate(value: unknown): string {
+    const date = value instanceof Date ? value : new Date(value as any);
+    return Number.isNaN(date.getTime()) ? new Date(0).toISOString() : date.toISOString();
+  }
+
   async generateReport(options: ReportOptions): Promise<InvestigationReport> {
     const {
       investigation,
@@ -71,11 +77,12 @@ export class ReportGenerator {
         case 'html':
           content = await this.generateHTMLReport(investigation, options);
           break;
-        case 'pdf':
+        case 'pdf': {
           // For PDF, we'll generate HTML first and then convert
           const htmlContent = await this.generateHTMLReport(investigation, options);
           content = await this.convertHTMLToPDF(htmlContent);
           break;
+        }
         case 'xml':
           content = await this.generateXMLReport(investigation, options);
           break;
@@ -172,8 +179,8 @@ export class ReportGenerator {
     sections.push(`**Severity:** ${investigation.severity}`);
     sections.push(`**Category:** ${investigation.category}`);
     sections.push(`**Priority:** ${investigation.priority}`);
-    sections.push(`**Created:** ${investigation.created_at.toISOString()}`);
-    sections.push(`**Updated:** ${investigation.updated_at.toISOString()}`);
+      sections.push(`**Created:** ${this.toISODate(investigation.created_at)}`);
+      sections.push(`**Updated:** ${this.toISODate(investigation.updated_at)}`);
     sections.push(`**Reported By:** ${investigation.reported_by}`);
     sections.push(`**Assigned To:** ${investigation.assigned_to || 'Unassigned'}`);
 
@@ -232,7 +239,7 @@ export class ReportGenerator {
           sections.push(`- **ID:** ${item.id}`);
           sections.push(`- **Source:** ${item.source}`);
           sections.push(`- **Size:** ${item.metadata.size} bytes`);
-          sections.push(`- **Collected:** ${item.created_at.toISOString()}`);
+          sections.push(`- **Collected:** ${this.toISODate(item.created_at)}`);
           sections.push(`- **Checksum:** ${item.metadata.checksum}`);
         });
       });
@@ -373,11 +380,15 @@ export class ReportGenerator {
   }
 
   private buildTimeline(investigation: InvestigationCase): any[] {
+    const toSafeDate = (value: unknown): Date => {
+      const d = value instanceof Date ? value : new Date(value as any);
+      return Number.isNaN(d.getTime()) ? new Date(0) : d;
+    };
     const timeline: any[] = [];
 
     // Add investigation creation
     timeline.push({
-      timestamp: investigation.created_at,
+      timestamp: toSafeDate(investigation.created_at),
       description: `Investigation created: ${investigation.title}`,
       source: 'system',
       type: 'investigation_created'
@@ -386,7 +397,7 @@ export class ReportGenerator {
     // Add evidence collection events
     investigation.evidence.forEach(evidence => {
       timeline.push({
-        timestamp: evidence.created_at,
+        timestamp: toSafeDate(evidence.created_at),
         description: `Evidence collected: ${evidence.type} from ${evidence.source}`,
         source: 'evidence_collector',
         type: 'evidence_collected',
@@ -397,7 +408,7 @@ export class ReportGenerator {
     // Add analysis events
     investigation.analysis_results.forEach(analysis => {
       timeline.push({
-        timestamp: analysis.created_at,
+        timestamp: toSafeDate(analysis.created_at),
         description: `Analysis completed: ${analysis.type}`,
         source: 'analysis_engine',
         type: 'analysis_completed',
@@ -408,7 +419,7 @@ export class ReportGenerator {
     // Add finding events
     investigation.findings.forEach(finding => {
       timeline.push({
-        timestamp: finding.created_at,
+        timestamp: toSafeDate(finding.created_at),
         description: `Finding identified: ${finding.title}`,
         source: 'investigation',
         type: 'finding_identified',
@@ -416,8 +427,14 @@ export class ReportGenerator {
       });
     });
 
-    // Sort by timestamp
-    return timeline.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    // Sort by timestamp with strong guards
+    return timeline.sort((a, b) => {
+      const at = a && a.timestamp instanceof Date ? a.timestamp.getTime() : (a && a.timestamp ? new Date(a.timestamp as any).getTime() : 0);
+      const bt = b && b.timestamp instanceof Date ? b.timestamp.getTime() : (b && b.timestamp ? new Date(b.timestamp as any).getTime() : 0);
+      const as = Number.isNaN(at) ? 0 : at;
+      const bs = Number.isNaN(bt) ? 0 : bt;
+      return as - bs;
+    });
   }
 
   private groupEvidenceByType(evidence: EvidenceItem[]): Record<string, EvidenceItem[]> {
@@ -431,6 +448,11 @@ export class ReportGenerator {
   }
 
   private generateSummary(investigation: InvestigationCase): any {
+    const createdISO = this.toISODate(investigation.created_at);
+    const updatedISO = this.toISODate(investigation.updated_at);
+    const createdMs = new Date(createdISO).getTime();
+    const updatedMs = new Date(updatedISO).getTime();
+    const duration = (Number.isNaN(createdMs) || Number.isNaN(updatedMs)) ? 0 : (updatedMs - createdMs);
     return {
       total_evidence_items: investigation.evidence.length,
       total_analysis_results: investigation.analysis_results.length,
@@ -438,7 +460,7 @@ export class ReportGenerator {
       root_causes_identified: investigation.root_causes.length,
       contributing_factors_identified: investigation.contributing_factors.length,
       recommendations_provided: investigation.recommendations.length,
-      investigation_duration: investigation.updated_at.getTime() - investigation.created_at.getTime(),
+      investigation_duration: duration,
       status: investigation.status,
       severity: investigation.severity
     };
@@ -455,8 +477,8 @@ export class ReportGenerator {
     <severity>${investigation.severity}</severity>
     <category>${investigation.category}</category>
     <status>${investigation.status}</status>
-    <created_at>${investigation.created_at.toISOString()}</created_at>
-    <updated_at>${investigation.updated_at.toISOString()}</updated_at>
+    <created_at>${this.toISODate(investigation.created_at)}</created_at>
+    <updated_at>${this.toISODate(investigation.updated_at)}</updated_at>
   </metadata>
   ${options.include_evidence ? this.generateXMLEvidenceSection(investigation) : ''}
   ${options.include_analysis ? this.generateXMLAnalysisSection(investigation) : ''}
@@ -474,8 +496,8 @@ export class ReportGenerator {
     severity: ${investigation.severity}
     category: ${investigation.category}
     status: ${investigation.status}
-    created_at: ${investigation.created_at.toISOString()}
-    updated_at: ${investigation.updated_at.toISOString()}
+    created_at: ${this.toISODate(investigation.created_at)}
+    updated_at: ${this.toISODate(investigation.updated_at)}
   ${options.include_evidence ? this.generateYAMLEvidenceSection(investigation) : ''}
   ${options.include_analysis ? this.generateYAMLAnalysisSection(investigation) : ''}
   ${options.include_recommendations ? this.generateYAMLRecommendationsSection(investigation) : ''}`;
@@ -484,17 +506,17 @@ export class ReportGenerator {
 
   private async generateCSVReport(investigation: InvestigationCase, options: ReportOptions): Promise<string> {
     let csv = 'Type,ID,Title,Description,Severity,Status,Created,Updated\n';
-    csv += `Investigation,${investigation.id},"${investigation.title}","${investigation.description}",${investigation.severity},${investigation.status},${investigation.created_at.toISOString()},${investigation.updated_at.toISOString()}\n`;
+    csv += `Investigation,${investigation.id},"${investigation.title}","${investigation.description}",${investigation.severity},${investigation.status},${this.toISODate(investigation.created_at)},${this.toISODate(investigation.updated_at)}\n`;
     
     if (options.include_evidence) {
       investigation.evidence.forEach(evidence => {
-        csv += `Evidence,${evidence.id},"${evidence.type}","${evidence.source}",${evidence.tags?.join(';') || ''},collected,${evidence.created_at.toISOString()},${evidence.created_at.toISOString()}\n`;
+        csv += `Evidence,${evidence.id},"${evidence.type}","${evidence.source}",${evidence.tags?.join(';') || ''},collected,${this.toISODate(evidence.created_at)},${this.toISODate(evidence.created_at)}\n`;
       });
     }
     
     if (options.include_analysis) {
       investigation.analysis.forEach(analysis => {
-        csv += `Analysis,${analysis.id},"${analysis.type}","${analysis.methodology}",${analysis.confidence},completed,${analysis.created_at.toISOString()},${analysis.created_at.toISOString()}\n`;
+        csv += `Analysis,${analysis.id},"${analysis.type}","${analysis.methodology}",${analysis.confidence},completed,${this.toISODate(analysis.created_at)},${this.toISODate(analysis.created_at)}\n`;
       });
     }
     
@@ -523,8 +545,8 @@ export class ReportGenerator {
         <tr><td>Severity</td><td>${investigation.severity}</td></tr>
         <tr><td>Category</td><td>${investigation.category}</td></tr>
         <tr><td>Status</td><td>${investigation.status}</td></tr>
-        <tr><td>Created</td><td>${investigation.created_at.toISOString()}</td></tr>
-        <tr><td>Updated</td><td>${investigation.updated_at.toISOString()}</td></tr>
+        <tr><td>Created</td><td>${this.toISODate(investigation.created_at)}</td></tr>
+        <tr><td>Updated</td><td>${this.toISODate(investigation.updated_at)}</td></tr>
     </table>
     ${options.include_evidence ? this.generateExcelEvidenceSection(investigation) : ''}
     ${options.include_analysis ? this.generateExcelAnalysisSection(investigation) : ''}
@@ -561,7 +583,7 @@ export class ReportGenerator {
         <h1>Executive Summary</h1>
         <p>${investigation.description}</p>
         <p><strong>Investigation ID:</strong> ${investigation.id}</p>
-        <p><strong>Duration:</strong> ${Math.round((investigation.updated_at.getTime() - investigation.created_at.getTime()) / (1000 * 60 * 60))} hours</p>
+        <p><strong>Duration:</strong> ${Math.round(((new Date(this.toISODate(investigation.updated_at)).getTime()) - (new Date(this.toISODate(investigation.created_at)).getTime())) / (1000 * 60 * 60))} hours</p>
     </div>
     
     ${options.include_evidence ? this.generatePowerPointEvidenceSection(investigation) : ''}
@@ -580,7 +602,7 @@ export class ReportGenerator {
       <id>${evidence.id}</id>
       <type>${evidence.type}</type>
       <source>${evidence.source}</source>
-      <created_at>${evidence.created_at.toISOString()}</created_at>
+      <created_at>${this.toISODate(evidence.created_at)}</created_at>
       <tags>${evidence.tags?.join(',') || ''}</tags>
     </item>`).join('')}
   </evidence>`;
@@ -593,7 +615,7 @@ export class ReportGenerator {
       <id>${analysis.id}</id>
       <type>${analysis.type}</type>
       <confidence>${analysis.confidence}</confidence>
-      <created_at>${analysis.created_at.toISOString()}</created_at>
+      <created_at>${this.toISODate(analysis.created_at)}</created_at>
     </item>`).join('')}
   </analysis>`;
   }
@@ -615,7 +637,7 @@ export class ReportGenerator {
 ${investigation.evidence.map(evidence => `  - id: ${evidence.id}
     type: ${evidence.type}
     source: ${evidence.source}
-    created_at: ${evidence.created_at.toISOString()}
+    created_at: ${this.toISODate(evidence.created_at)}
     tags: [${evidence.tags?.map(tag => `"${tag}"`).join(', ') || ''}]`).join('\n')}`;
   }
 
@@ -624,7 +646,7 @@ ${investigation.evidence.map(evidence => `  - id: ${evidence.id}
 ${investigation.analysis.map(analysis => `  - id: ${analysis.id}
     type: ${analysis.type}
     confidence: ${analysis.confidence}
-    created_at: ${analysis.created_at.toISOString()}`).join('\n')}`;
+    created_at: ${this.toISODate(analysis.created_at)}`).join('\n')}`;
   }
 
   private generateYAMLRecommendationsSection(investigation: InvestigationCase): string {
@@ -644,7 +666,7 @@ ${investigation.recommendations.map(rec => `  - title: "${typeof rec === 'string
             <td>${evidence.id}</td>
             <td>${evidence.type}</td>
             <td>${evidence.source}</td>
-            <td>${evidence.created_at.toISOString()}</td>
+            <td>${this.toISODate(evidence.created_at)}</td>
             <td>${evidence.tags?.join(', ') || ''}</td>
         </tr>`).join('')}
     </table>`;
@@ -659,7 +681,7 @@ ${investigation.recommendations.map(rec => `  - title: "${typeof rec === 'string
             <td>${analysis.id}</td>
             <td>${analysis.type}</td>
             <td>${analysis.confidence}</td>
-            <td>${analysis.created_at.toISOString()}</td>
+            <td>${this.toISODate(analysis.created_at)}</td>
         </tr>`).join('')}
     </table>`;
   }

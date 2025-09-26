@@ -109,7 +109,7 @@ export class InvestigationDatabase {
         CREATE TABLE IF NOT EXISTS evidence (
           id TEXT PRIMARY KEY,
           investigation_id TEXT NOT NULL,
-          type TEXT NOT NULL CHECK (type IN ('log', 'config', 'metric', 'network', 'process', 'filesystem', 'database', 'security')),
+          type TEXT NOT NULL CHECK (type IN ('log', 'config', 'metric', 'network', 'process', 'filesystem', 'database', 'security', 'infrastructure', 'container', 'cloud', 'monitoring')),
           source TEXT NOT NULL,
           path TEXT,
           content TEXT NOT NULL,
@@ -120,6 +120,44 @@ export class InvestigationDatabase {
           FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
         )
       `);
+      // Migration: widen evidence.type CHECK to include new types if existing table has old CHECK
+      try {
+        const pragma: any[] = await this.all(`PRAGMA table_info(evidence)`);
+        // naive check: try inserting and rollback on failure
+        const testId = 'migrate-check-' + Date.now();
+        await this.run('BEGIN');
+        try {
+          await this.run(`INSERT INTO evidence (id, investigation_id, type, source, content, metadata, created_at) VALUES (?, ?, 'infrastructure', 'migration_test', '{}', '{}', CURRENT_TIMESTAMP)`, [testId, 'non-existent']);
+          await this.run(`DELETE FROM evidence WHERE id = ?`, [testId]);
+          await this.run('COMMIT');
+        } catch {
+          await this.run('ROLLBACK');
+          // Recreate evidence table with expanded CHECK by renaming and copying
+          await this.run('ALTER TABLE evidence RENAME TO evidence_old');
+          await this.run(`
+            CREATE TABLE evidence (
+              id TEXT PRIMARY KEY,
+              investigation_id TEXT NOT NULL,
+              type TEXT NOT NULL CHECK (type IN ('log', 'config', 'metric', 'network', 'process', 'filesystem', 'database', 'security', 'infrastructure', 'container', 'cloud', 'monitoring')),
+              source TEXT NOT NULL,
+              path TEXT,
+              content TEXT NOT NULL,
+              metadata TEXT NOT NULL,
+              chain_of_custody TEXT,
+              tags TEXT,
+              created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (investigation_id) REFERENCES investigations (id) ON DELETE CASCADE
+            )
+          `);
+          await this.run(`
+            INSERT INTO evidence (id, investigation_id, type, source, path, content, metadata, chain_of_custody, tags, created_at)
+            SELECT id, investigation_id, type, source, path, content, metadata, chain_of_custody, tags, created_at FROM evidence_old
+          `);
+          await this.run('DROP TABLE evidence_old');
+        }
+      } catch (e) {
+        // best-effort migration; continue
+      }
 
       // Create analysis_results table
       await this.run(`

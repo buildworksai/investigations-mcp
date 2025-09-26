@@ -627,14 +627,22 @@ export class EvidenceCollector {
 
   private calculateSecurityScore(securityData: any): number {
     let score = 100; // Start with perfect score
+    const has = (container: any, needle: any): boolean => {
+      if (Array.isArray(container)) return container.includes(needle);
+      if (typeof container === 'string') return container.includes(String(needle));
+      if (container && typeof container === 'object') {
+        try { return JSON.stringify(container).includes(String(needle)); } catch { return false; }
+      }
+      return false;
+    };
     
     // Deduct points for various security issues
-    if (securityData.users?.includes('root')) score -= 10;
-    if (securityData.open_ports?.includes('22')) score -= 5; // SSH
-    if (securityData.open_ports?.includes('80')) score -= 5; // HTTP
-    if (securityData.open_ports?.includes('443')) score -= 5; // HTTPS
-    if (securityData.suspicious_processes?.length > 0) score -= 20;
-    if (securityData.malware_signatures?.length > 0) score -= 30;
+    if (has(securityData.users, 'root')) score -= 10;
+    if (has(securityData.open_ports, '22')) score -= 5; // SSH
+    if (has(securityData.open_ports, '80')) score -= 5; // HTTP
+    if (has(securityData.open_ports, '443')) score -= 5; // HTTPS
+    if ((securityData.suspicious_processes && String(securityData.suspicious_processes).trim() !== '' && !String(securityData.suspicious_processes).includes('No suspicious processes found'))) score -= 20;
+    if ((securityData.malware_signatures && String(securityData.malware_signatures).trim() !== '' && !String(securityData.malware_signatures).includes('No suspicious files found'))) score -= 30;
     
     return Math.max(0, score);
   }
@@ -1056,31 +1064,63 @@ export class EvidenceCollector {
   // Scoring Methods
   private calculateInfrastructureScore(data: any): number {
     let score = 100;
+    const has = (container: any, needle: any): boolean => {
+      if (Array.isArray(container)) return container.includes(needle);
+      if (typeof container === 'string') return container.includes(String(needle));
+      if (container && typeof container === 'object') {
+        try { return JSON.stringify(container).includes(String(needle)); } catch { return false; }
+      }
+      return false;
+    };
     // Deduct points for infrastructure issues
-    if (!data.systemInfo?.includes('Linux')) score -= 10;
-    if (!data.hardwareInfo?.includes('CPU')) score -= 5;
-    if (!data.softwareInfo?.includes('package')) score -= 5;
+    if (!has(data.systemInfo, 'Linux')) score -= 10;
+    if (!has(data.hardwareInfo, 'CPU')) score -= 5;
+    if (!has(data.softwareInfo, 'package')) score -= 5;
     return Math.max(0, score);
   }
 
   private calculateContainerScore(data: any): number {
     let score = 100;
-    if (!data.dockerInfo?.includes('Docker')) score -= 20;
-    if (!data.containerList?.includes('CONTAINER')) score -= 10;
+    const has = (container: any, needle: any): boolean => {
+      if (Array.isArray(container)) return container.includes(needle);
+      if (typeof container === 'string') return container.includes(String(needle));
+      if (container && typeof container === 'object') {
+        try { return JSON.stringify(container).includes(String(needle)); } catch { return false; }
+      }
+      return false;
+    };
+    if (!has(data.dockerInfo, 'Docker')) score -= 20;
+    if (!has(data.containerList, 'CONTAINER')) score -= 10;
     return Math.max(0, score);
   }
 
   private calculateCloudScore(data: any): number {
     let score = 100;
-    if (!data.cloudProvider?.includes('AWS')) score -= 15;
-    if (!data.instanceInfo?.includes('instance')) score -= 10;
+    const has = (container: any, needle: any): boolean => {
+      if (Array.isArray(container)) return container.includes(needle);
+      if (typeof container === 'string') return container.includes(String(needle));
+      if (container && typeof container === 'object') {
+        try { return JSON.stringify(container).includes(String(needle)); } catch { return false; }
+      }
+      return false;
+    };
+    if (!has(data.cloudProvider, 'AWS')) score -= 15;
+    if (!has(data.instanceInfo, 'instance')) score -= 10;
     return Math.max(0, score);
   }
 
   private calculateMonitoringScore(data: any): number {
     let score = 100;
-    if (!data.monitoringTools?.includes('prometheus')) score -= 20;
-    if (!data.alertStatus?.includes('active')) score -= 15;
+    const has = (container: any, needle: any): boolean => {
+      if (Array.isArray(container)) return container.includes(needle);
+      if (typeof container === 'string') return container.includes(String(needle));
+      if (container && typeof container === 'object') {
+        try { return JSON.stringify(container).includes(String(needle)); } catch { return false; }
+      }
+      return false;
+    };
+    if (!has(data.monitoringTools, 'prometheus')) score -= 20;
+    if (!has(data.alertStatus, 'active')) score -= 15;
     return Math.max(0, score);
   }
 

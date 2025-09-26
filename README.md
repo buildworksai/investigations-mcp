@@ -259,7 +259,13 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.9 (Current)
+### v2.0.10 (Current)
+- Fix report date handling and null-safety
+- Harden security/infrastructure scoring
+- Add DB migration for new evidence types
+- Add local terminal E2E script (no IDE needed)
+
+### v2.0.9
 - Minor fixes and TS typing hardening
 - Build green in CI for publish
 

@@ -1,6 +1,6 @@
 {
   "name": "buildworks-ai-investigations-mcp",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "Investigations MCP by BuildWorks.AI — forensic investigations and root cause analysis server for MCP-compatible IDEs.",
   "main": "dist/index.js",
   "type": "module",
