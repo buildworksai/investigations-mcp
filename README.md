@@ -259,7 +259,11 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.8 (Current)
+### v2.0.9 (Current)
+- Minor fixes and TS typing hardening
+- Build green in CI for publish
+
+### v2.0.8
 - **COMPLETED PHASE 3 & 4**: All specialized tools and integrations implemented
 - **Security Forensics**: Advanced security analysis with malware detection, vulnerability scanning, and security scoring
 - **Performance Analysis**: Comprehensive performance bottleneck identification and optimization recommendations
