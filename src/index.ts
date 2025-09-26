@@ -48,6 +48,9 @@ class InvestigationMCPServer {
     this.reportGenerator = new ReportGenerator();
 
     this.setupHandlers();
+    
+    // Log database path for debugging
+    console.log(`Database will be created at: ${this.database.getDatabasePath()}`);
   }
 
   private setupHandlers(): void {

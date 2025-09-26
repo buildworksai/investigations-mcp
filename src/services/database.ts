@@ -4,6 +4,9 @@
  */
 
 import Database from 'sqlite3';
+import fs from 'fs-extra';
+import path from 'path';
+import os from 'os';
 import { 
   InvestigationCase, 
   EvidenceItem, 
@@ -17,17 +20,67 @@ import {
 import { InvestigationError } from '../types/index.js';
 
 export class InvestigationDatabase {
-  private db: Database.Database;
+  private db: Database.Database | null = null;
   private initialized: boolean = false;
+  private dbPath: string;
 
-  constructor(dbPath: string = './investigations.db') {
-    this.db = new Database.Database(dbPath);
+  constructor(dbPath?: string) {
+    // Use provided path or create a proper data directory
+    if (dbPath) {
+      this.dbPath = dbPath;
+    } else {
+      // For Windsurf IDE and other sandboxed environments, prioritize user home directory
+      const possiblePaths = [
+        path.join(os.homedir(), '.investigations-mcp', 'investigations.db'),
+        path.join(os.tmpdir(), 'investigations-mcp', 'investigations.db'),
+        path.join(process.cwd(), 'data', 'investigations.db'),
+        './investigations.db'
+      ];
+      
+      this.dbPath = possiblePaths[0]; // Start with user home directory
+    }
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
     try {
+      // Ensure the directory exists and is writable
+      const dbDir = path.dirname(this.dbPath);
+      await fs.ensureDir(dbDir);
+      
+      // Test if we can write to the directory
+      const testFile = path.join(dbDir, '.write-test');
+      try {
+        await fs.writeFile(testFile, 'test');
+        await fs.remove(testFile);
+      } catch (writeError) {
+        // If we can't write to the preferred location, try fallback locations
+        const fallbackPaths = [
+          path.join(os.tmpdir(), 'investigations-mcp', 'investigations.db'),
+          path.join(process.cwd(), 'data', 'investigations.db'),
+          './investigations.db'
+        ];
+        
+        for (const fallbackPath of fallbackPaths) {
+          try {
+            const fallbackDir = path.dirname(fallbackPath);
+            await fs.ensureDir(fallbackDir);
+            const testFallbackFile = path.join(fallbackDir, '.write-test');
+            await fs.writeFile(testFallbackFile, 'test');
+            await fs.remove(testFallbackFile);
+            
+            // If we can write here, update the database path
+            this.dbPath = fallbackPath;
+            break;
+          } catch (fallbackError) {
+            continue; // Try next fallback
+          }
+        }
+      }
+      
+      // Now create the database connection
+      this.db = new Database.Database(this.dbPath);
       // Create investigations table
       await this.run(`
         CREATE TABLE IF NOT EXISTS investigations (
@@ -167,12 +220,14 @@ export class InvestigationDatabase {
       await this.run(`CREATE INDEX IF NOT EXISTS idx_timeline_timestamp ON timeline_events (timestamp)`);
 
       this.initialized = true;
+      console.log(`Database initialized successfully at: ${this.dbPath}`);
     } catch (error) {
+      console.error(`Failed to initialize database at ${this.dbPath}:`, error);
       throw new InvestigationError(
-        `Failed to initialize database: ${error}`,
+        `Failed to initialize database at ${this.dbPath}: ${error}`,
         'DATABASE_INIT_ERROR',
         undefined,
-        { error }
+        { error, dbPath: this.dbPath }
       );
     }
   }
@@ -462,9 +517,14 @@ export class InvestigationDatabase {
     }
   }
 
+  getDatabasePath(): string {
+    return this.dbPath;
+  }
+
   async close(): Promise<void> {
+    if (!this.db) return;
     return new Promise((resolve, reject) => {
-      this.db.close((err) => {
+      this.db!.close((err) => {
         if (err) reject(err);
         else resolve();
       });
@@ -473,8 +533,11 @@ export class InvestigationDatabase {
 
   // Helper methods for database operations
   private run(sql: string, params: any[] = []): Promise<void> {
+    if (!this.db) {
+      throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
+    }
     return new Promise((resolve, reject) => {
-      this.db.run(sql, params, (err) => {
+      this.db!.run(sql, params, (err) => {
         if (err) reject(err);
         else resolve();
       });
@@ -482,8 +545,11 @@ export class InvestigationDatabase {
   }
 
   private get(sql: string, params: any[] = []): Promise<any> {
+    if (!this.db) {
+      throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
+    }
     return new Promise((resolve, reject) => {
-      this.db.get(sql, params, (err, row) => {
+      this.db!.get(sql, params, (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -491,8 +557,11 @@ export class InvestigationDatabase {
   }
 
   private all(sql: string, params: any[] = []): Promise<any[]> {
+    if (!this.db) {
+      throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
+    }
     return new Promise((resolve, reject) => {
-      this.db.all(sql, params, (err, rows) => {
+      this.db!.all(sql, params, (err, rows) => {
         if (err) reject(err);
         else resolve(rows);
       });
