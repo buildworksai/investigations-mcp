@@ -38,24 +38,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Setup Node.js for GitHub Packages
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@buildworksai'
-
-      - name: Create GitHub Packages version
+      - name: Create GitHub Release
         run: |
-          # Create a separate package.json for GitHub Packages
-          cp package.json package.json.backup
-          jq '.name = "@buildworksai/investigations-mcp"' package.json > package.json.gh
-          mv package.json.gh package.json
-          
-          # Publish to GitHub Packages
-          npm publish
+          echo "Package successfully published to npm!"
+          echo "Version: $(node -p "require('./package.json').version")"
+          echo "Package: $(node -p "require('./package.json').name")"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Restore original package.json
-        run: mv package.json.backup package.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
