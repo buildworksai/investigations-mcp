@@ -1,5 +1,11 @@
 # Investigations MCP by BuildWorks.AI
 
+[![npm version](https://img.shields.io/npm/v/buildworks-ai-investigations-mcp.svg)](https://www.npmjs.com/package/buildworks-ai-investigations-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/buildworks-ai-investigations-mcp.svg)](https://www.npmjs.com/package/buildworks-ai-investigations-mcp)
+[![Publish](https://github.com/buildworksai/investigations-mcp/actions/workflows/publish.yml/badge.svg)](https://github.com/buildworksai/investigations-mcp/actions/workflows/publish.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
+
 Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol (MCP) server providing forensic investigations, root cause analysis, and systematic evidence-based problem solving. Works with Cursor, Windsurf, and Claude via stdio. Distributed via npm and Docker. Built and maintained by [BuildWorks.AI](https://buildworks.ai).
 
 ## Features
