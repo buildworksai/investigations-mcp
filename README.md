@@ -228,6 +228,25 @@ npm run dev
 
 MIT License - see [LICENSE](./LICENSE) file for details.
 
+## Troubleshooting
+
+### Common Issues
+
+#### ENOTEMPTY Error with npx
+If you encounter an `ENOTEMPTY` error when using npx, clear the npx cache:
+
+```bash
+# Clear npm and npx cache
+npm cache clean --force
+rm -rf ~/.npm/_npx
+
+# Or use the provided script
+./scripts/clear-npx-cache.sh
+```
+
+#### SQLite3 Native Module Issues
+If you encounter `ERR_DLOPEN_FAILED` or similar native module errors, ensure you're using version 2.0.13 or later, which uses `better-sqlite3` for improved compatibility.
+
 ## Support
 
 For questions, issues, or contributions:
