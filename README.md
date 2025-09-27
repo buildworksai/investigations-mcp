@@ -286,7 +286,12 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.14 (Current)
+### v2.0.15 (Current)
+- **Dependency Cleanup**: Removed deprecated `crypto@1.0.1` package that was causing npm warnings.
+- **Clean Installation**: Package now uses only Node.js built-in crypto module, eliminating deprecation warnings.
+- **Improved Reliability**: Cleaner dependency tree with no deprecated packages.
+
+### v2.0.14
 - **Troubleshooting Documentation**: Added comprehensive troubleshooting section for common issues including ENOTEMPTY errors and SQLite3 native module problems.
 - **Helper Script**: Created `clear-npx-cache.sh` script to help users resolve npx cache issues.
 - **User Experience**: Improved documentation and support for common installation and usage problems.
