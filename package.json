@@ -1,6 +1,6 @@
 {
   "name": "buildworks-ai-investigations-mcp",
-  "version": "2.0.16",
+  "version": "2.0.17",
   "description": "Investigations MCP by BuildWorks.AI — forensic investigations and root cause analysis server for MCP-compatible IDEs.",
   "main": "dist/index.js",
   "type": "module",
@@ -18,13 +18,16 @@
     "docker:run": "docker run --rm -i buildworks-ai-investigations-mcp:latest",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
     "setup": "./scripts/setup.sh",
-    "local-e2e": "tsx scripts/local-e2e.ts"
+    "local-e2e": "tsx scripts/local-e2e.ts",
+    "preinstall": "node scripts/preinstall.js",
+    "postinstall": "node scripts/postinstall.js"
   },
   "files": [
     "dist/",
     "README.md",
     "examples/",
-    "SETUP.md"
+    "SETUP.md",
+    "scripts/"
   ],
   "keywords": [
     "buildworks-ai",

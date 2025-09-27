@@ -232,8 +232,25 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ### Common Issues
 
+#### Package Installation Failures
+If you encounter installation errors, try these steps in order:
+
+```bash
+# 1. Clear npm and npx caches
+npm cache clean --force
+rm -rf ~/.npm/_npx
+
+# 2. Verify Node.js version (requires 18+)
+node --version
+
+# 3. Try alternative installation methods
+npm install -g buildworks-ai-investigations-mcp@latest
+# OR
+npx buildworks-ai-investigations-mcp@latest --version
+```
+
 #### ENOTEMPTY Error with npx
-If you encounter an `ENOTEMPTY` error when using npx, clear the npx cache:
+This is a common npm cache corruption issue. The package includes automatic detection and guidance:
 
 ```bash
 # Clear npm and npx cache
@@ -251,7 +268,26 @@ If you encounter `ERR_DLOPEN_FAILED` or similar native module errors, ensure you
 If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.0.15 or later, which uses Node.js built-in crypto module instead.
 
 #### MCP Server Connection Issues
-If you encounter "failed to initialize server" or "transport error: server terminated" errors, ensure you're using version 2.0.16 or later, which has improved server stability and error handling.
+If you encounter "failed to initialize server" or "transport error: server terminated" errors:
+
+1. **Check version**: Ensure you're using version 2.0.17 or later
+2. **Clear caches**: Run the cache clearing steps above
+3. **Verify installation**: Test with `npx buildworks-ai-investigations-mcp@latest --version`
+4. **Check Node.js**: Ensure Node.js 18+ is installed
+
+#### "No tools" in MCP Client
+If your MCP client shows "No tools, prompts, or resources":
+
+1. **Verify server startup**: Check that the server starts without errors
+2. **Check MCP configuration**: Ensure correct command and args in your MCP config
+3. **Test manually**: Run `echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | npx buildworks-ai-investigations-mcp@latest`
+4. **Restart client**: Restart your MCP client after configuration changes
+
+### Getting Help
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/buildworksai/investigations-mcp/issues)
+- **Documentation**: [Full documentation](https://github.com/buildworksai/investigations-mcp#readme)
+- **BuildWorks.AI Support**: [contact@buildworks.ai](mailto:contact@buildworks.ai)
 
 ## Support
 
@@ -292,7 +328,14 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.16 (Current)
+### v2.0.17 (Current)
+- **Enhanced Installation**: Added pre-install and post-install scripts for better user experience.
+- **Cache Issue Detection**: Automatic detection of npm/npx cache corruption with helpful guidance.
+- **Improved Troubleshooting**: Comprehensive troubleshooting documentation and multiple installation methods.
+- **Better Error Messages**: Clear, actionable error messages for common installation issues.
+- **Installation Verification**: Post-install verification and usage instructions.
+
+### v2.0.16
 - **Server Stability**: Improved MCP server startup and error handling with proper signal handling.
 - **Version Flag**: Added proper `--version` flag support for better CLI compatibility.
 - **Better Error Handling**: Enhanced error handling and graceful shutdown for MCP clients.

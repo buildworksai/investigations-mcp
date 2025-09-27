@@ -35,12 +35,12 @@ class InvestigationMCPServer {
   private reportGenerator: ReportGenerator;
 
   constructor() {
-    this.server = new Server(
-      {
-        name: 'Investigations MCP by BuildWorks.AI',
-        version: '2.0.16',
-      }
-    );
+        this.server = new Server(
+          {
+            name: 'Investigations MCP by BuildWorks.AI',
+            version: '2.0.17',
+          }
+        );
 
     this.database = new InvestigationDatabase();
     this.evidenceCollector = new EvidenceCollector();
@@ -520,7 +520,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.0.16');
+  console.log('2.0.17');
   process.exit(0);
 }
 
