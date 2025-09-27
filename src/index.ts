@@ -492,13 +492,36 @@ class InvestigationMCPServer {
   }
 
   async run(): Promise<void> {
-    await this.database.initialize();
-    
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    
-    console.error('Investigation MCP server running on stdio');
+    try {
+      await this.database.initialize();
+      
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      
+      console.error('Investigation MCP server running on stdio');
+      
+      // Keep the server running
+      process.on('SIGINT', () => {
+        console.error('Shutting down Investigation MCP server...');
+        process.exit(0);
+      });
+      
+      process.on('SIGTERM', () => {
+        console.error('Shutting down Investigation MCP server...');
+        process.exit(0);
+      });
+      
+    } catch (error) {
+      console.error('Failed to start Investigation MCP server:', error);
+      process.exit(1);
+    }
   }
+}
+
+// Handle command line arguments
+if (process.argv.includes('--version')) {
+  console.log('2.0.16');
+  process.exit(0);
 }
 
 // Start the server

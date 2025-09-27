@@ -247,6 +247,9 @@ rm -rf ~/.npm/_npx
 #### SQLite3 Native Module Issues
 If you encounter `ERR_DLOPEN_FAILED` or similar native module errors, ensure you're using version 2.0.13 or later, which uses `better-sqlite3` for improved compatibility.
 
+#### Crypto Deprecation Warnings
+If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.0.15 or later, which uses Node.js built-in crypto module instead.
+
 ## Support
 
 For questions, issues, or contributions:
@@ -286,7 +289,12 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.15 (Current)
+### v2.0.16 (Current)
+- **Server Stability**: Improved MCP server startup and error handling with proper signal handling.
+- **Version Flag**: Added proper `--version` flag support for better CLI compatibility.
+- **Better Error Handling**: Enhanced error handling and graceful shutdown for MCP clients.
+
+### v2.0.15
 - **Dependency Cleanup**: Removed deprecated `crypto@1.0.1` package that was causing npm warnings.
 - **Clean Installation**: Package now uses only Node.js built-in crypto module, eliminating deprecation warnings.
 - **Improved Reliability**: Cleaner dependency tree with no deprecated packages.
