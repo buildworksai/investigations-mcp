@@ -3,7 +3,7 @@
  * Provides SQLite-based storage with proper schema and data integrity
  */
 
-import Database from 'sqlite3';
+import Database from 'better-sqlite3';
 import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
@@ -80,7 +80,7 @@ export class InvestigationDatabase {
       }
       
       // Now create the database connection
-      this.db = new Database.Database(this.dbPath);
+      this.db = new Database(this.dbPath);
       // Create investigations table
       await this.run(`
         CREATE TABLE IF NOT EXISTS investigations (
@@ -563,12 +563,12 @@ export class InvestigationDatabase {
 
   async close(): Promise<void> {
     if (!this.db) return;
-    return new Promise((resolve, reject) => {
-      this.db!.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    try {
+      this.db.close();
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   // Helper methods for database operations
@@ -576,35 +576,35 @@ export class InvestigationDatabase {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }
-    return new Promise((resolve, reject) => {
-      this.db!.run(sql, params, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    try {
+      this.db.prepare(sql).run(...params);
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   private get(sql: string, params: any[] = []): Promise<any> {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }
-    return new Promise((resolve, reject) => {
-      this.db!.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    try {
+      const result = this.db.prepare(sql).get(...params);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   private all(sql: string, params: any[] = []): Promise<any[]> {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }
-    return new Promise((resolve, reject) => {
-      this.db!.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+    try {
+      const result = this.db.prepare(sql).all(...params);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 }
