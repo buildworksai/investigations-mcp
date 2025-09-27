@@ -37,6 +37,21 @@ function verifyInstallation() {
       return false;
     }
     
+    // Verify better-sqlite3 native module
+    const betterSqlitePath = join(process.cwd(), 'node_modules', 'better-sqlite3');
+    if (existsSync(betterSqlitePath)) {
+      const buildPath = join(betterSqlitePath, 'build', 'Release', 'better_sqlite3.node');
+      const bindingPath = join(betterSqlitePath, 'lib', 'binding');
+      
+      if (existsSync(buildPath) && !existsSync(bindingPath)) {
+        log('⚠️  Detected potential better-sqlite3 native module issue', 'yellow');
+        log('   This may cause "failed to initialize server" errors', 'yellow');
+        log('   If you encounter issues, clear npx cache: rm -rf ~/.npm/_npx', 'yellow');
+      } else if (existsSync(buildPath)) {
+        log('✅ better-sqlite3 native module verified', 'green');
+      }
+    }
+    
     // Test version command
     try {
       const version = execSync('node dist/index.js --version', { 

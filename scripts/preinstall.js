@@ -25,13 +25,39 @@ function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
-function checkNpmCache() {
+async function checkNpmCache() {
   try {
     const npmCachePath = join(homedir(), '.npm');
     const npxCachePath = join(homedir(), '.npm', '_npx');
     
     if (existsSync(npxCachePath)) {
-      log('⚠️  Detected npx cache directory. This may cause installation issues.', 'yellow');
+      log('⚠️  Detected npx cache directory. Checking for corrupted better-sqlite3 installations...', 'yellow');
+      
+      // Check for corrupted better-sqlite3 installations in npx cache
+      try {
+        const { readdirSync, statSync } = await import('fs');
+        const cacheEntries = readdirSync(npxCachePath);
+        
+        for (const entry of cacheEntries) {
+          const entryPath = join(npxCachePath, entry);
+          if (statSync(entryPath).isDirectory()) {
+            const betterSqlitePath = join(entryPath, 'node_modules', 'better-sqlite3');
+            const bindingPath = join(betterSqlitePath, 'lib', 'binding');
+            const buildPath = join(betterSqlitePath, 'build', 'Release', 'better_sqlite3.node');
+            
+            if (existsSync(betterSqlitePath) && existsSync(buildPath) && !existsSync(bindingPath)) {
+              log('🚨 Found corrupted better-sqlite3 installation in npx cache!', 'red');
+              log(`   Cache entry: ${entry}`, 'red');
+              log('   Missing lib/binding directory structure', 'red');
+              return 'corrupted';
+            }
+          }
+        }
+      } catch (error) {
+        // If we can't check, assume potential corruption
+        log('⚠️  Could not verify npx cache integrity', 'yellow');
+      }
+      
       return true;
     }
     
@@ -59,23 +85,40 @@ function checkNodeVersion() {
   }
 }
 
-function provideCacheClearingInstructions() {
-  log('\n🔧 If you encounter installation issues, try these steps:', 'cyan');
+function provideCacheClearingInstructions(isCorrupted = false) {
+  if (isCorrupted) {
+    log('\n🚨 CRITICAL: Corrupted npx cache detected!', 'red');
+    log('This will cause "failed to initialize server" errors.', 'red');
+    log('\n🔧 REQUIRED: Clear corrupted cache before proceeding:', 'cyan');
+  } else {
+    log('\n🔧 If you encounter installation issues, try these steps:', 'cyan');
+  }
+  
   log('1. Clear npm cache: npm cache clean --force', 'blue');
   log('2. Clear npx cache: rm -rf ~/.npm/_npx', 'blue');
   log('3. Retry installation: npx buildworks-ai-investigations-mcp@latest', 'blue');
+  
+  if (isCorrupted) {
+    log('\n⚠️  Installation will likely FAIL without clearing the cache first!', 'yellow');
+  }
+  
   log('\n📖 For more help, see: https://github.com/buildworksai/investigations-mcp#troubleshooting', 'magenta');
 }
 
-function main() {
+async function main() {
   log('🔍 BuildWorks.AI Investigations MCP - Pre-installation Check', 'bold');
   log('=' .repeat(60), 'cyan');
   
-  const hasCacheIssues = checkNpmCache();
+  const cacheStatus = await checkNpmCache();
   const nodeVersionOk = checkNodeVersion();
   
-  if (hasCacheIssues) {
-    provideCacheClearingInstructions();
+  if (cacheStatus === 'corrupted') {
+    provideCacheClearingInstructions(true);
+    log('\n❌ Pre-installation check FAILED: Corrupted cache detected!', 'red');
+    log('Please clear the cache and retry installation.', 'red');
+    process.exit(1);
+  } else if (cacheStatus) {
+    provideCacheClearingInstructions(false);
   }
   
   if (!nodeVersionOk) {

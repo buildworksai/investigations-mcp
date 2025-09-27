@@ -270,10 +270,32 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.18 or later
-2. **Clear caches**: Run the cache clearing steps above
+1. **Check version**: Ensure you're using version 2.0.19 or later
+2. **Clear corrupted cache** (MOST COMMON FIX):
+   ```bash
+   npm cache clean --force
+   rm -rf ~/.npm/_npx
+   npx buildworks-ai-investigations-mcp@latest --version
+   ```
 3. **Verify installation**: Test with `npx buildworks-ai-investigations-mcp@latest --version`
 4. **Check Node.js**: Ensure Node.js 18+ is installed
+
+#### better-sqlite3 Native Module Errors
+If you see errors mentioning `better_sqlite3.node`, `bindings.js`, or "failed to initialize server":
+
+**Root Cause**: Corrupted npx cache with incomplete native module installation
+
+**Solution** (Required):
+```bash
+# Clear all caches
+npm cache clean --force
+rm -rf ~/.npm/_npx
+
+# Fresh installation
+npx buildworks-ai-investigations-mcp@latest --version
+```
+
+**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.19+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
@@ -328,7 +350,14 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.18 (Current)
+### v2.0.19 (Current)
+- **Root Cause Fix**: Proactive detection and prevention of npx cache corruption that causes "failed to initialize server" errors.
+- **Enhanced Pre-install**: Pre-install script now detects corrupted better-sqlite3 installations and prevents installation with clear guidance.
+- **Runtime Error Handling**: Better error messages when native module loading fails, with specific cache clearing instructions.
+- **Post-install Validation**: Post-install script validates better-sqlite3 native module integrity.
+- **Comprehensive Documentation**: Updated troubleshooting with specific better-sqlite3 native module error solutions.
+
+### v2.0.18
 - **MCP Compliance**: Routed startup diagnostics to stderr so MCP clients receive clean stdout responses.
 - **Enhanced Installation**: Added pre-install and post-install scripts for better user experience.
 - **Cache Issue Detection**: Automatic detection of npm/npx cache corruption with helpful guidance.

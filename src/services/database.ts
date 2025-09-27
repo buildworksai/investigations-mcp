@@ -79,8 +79,24 @@ export class InvestigationDatabase {
         }
       }
       
-      // Now create the database connection
-      this.db = new Database(this.dbPath);
+      // Now create the database connection with error handling
+      try {
+        this.db = new Database(this.dbPath);
+      } catch (dbError: any) {
+        // If database creation fails due to native module issues, provide helpful error
+        if (dbError.message && dbError.message.includes('better_sqlite3.node')) {
+          console.error('❌ Database initialization failed: better-sqlite3 native module error');
+          console.error('💡 This is likely due to corrupted npx cache. Try:');
+          console.error('   1. npm cache clean --force');
+          console.error('   2. rm -rf ~/.npm/_npx');
+          console.error('   3. Retry: npx buildworks-ai-investigations-mcp@latest');
+          console.error('📖 See: https://github.com/buildworksai/investigations-mcp#troubleshooting');
+        }
+        throw new InvestigationError(
+          'DATABASE_INIT_ERROR',
+          `Failed to initialize database at ${this.dbPath}: ${dbError.message}`
+        );
+      }
       // Create investigations table
       await this.run(`
         CREATE TABLE IF NOT EXISTS investigations (
