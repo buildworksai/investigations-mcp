@@ -270,7 +270,7 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.17 or later
+1. **Check version**: Ensure you're using version 2.0.18 or later
 2. **Clear caches**: Run the cache clearing steps above
 3. **Verify installation**: Test with `npx buildworks-ai-investigations-mcp@latest --version`
 4. **Check Node.js**: Ensure Node.js 18+ is installed
@@ -328,7 +328,8 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.17 (Current)
+### v2.0.18 (Current)
+- **MCP Compliance**: Routed startup diagnostics to stderr so MCP clients receive clean stdout responses.
 - **Enhanced Installation**: Added pre-install and post-install scripts for better user experience.
 - **Cache Issue Detection**: Automatic detection of npm/npx cache corruption with helpful guidance.
 - **Improved Troubleshooting**: Comprehensive troubleshooting documentation and multiple installation methods.

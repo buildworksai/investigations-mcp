@@ -38,7 +38,7 @@ class InvestigationMCPServer {
         this.server = new Server(
           {
             name: 'Investigations MCP by BuildWorks.AI',
-            version: '2.0.17',
+            version: '2.0.18',
           }
         );
 
@@ -49,8 +49,8 @@ class InvestigationMCPServer {
 
     this.setupHandlers();
     
-    // Log database path for debugging
-    console.log(`Database will be created at: ${this.database.getDatabasePath()}`);
+    // Log database path for debugging (stderr to avoid interfering with MCP stdio)
+    console.error(`Database will be created at: ${this.database.getDatabasePath()}`);
   }
 
   private setupHandlers(): void {
@@ -520,7 +520,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.0.17');
+  console.log('2.0.18');
   process.exit(0);
 }
 

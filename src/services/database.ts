@@ -258,7 +258,7 @@ export class InvestigationDatabase {
       await this.run(`CREATE INDEX IF NOT EXISTS idx_timeline_timestamp ON timeline_events (timestamp)`);
 
       this.initialized = true;
-      console.log(`Database initialized successfully at: ${this.dbPath}`);
+      console.error(`Database initialized successfully at: ${this.dbPath}`);
     } catch (error) {
       console.error(`Failed to initialize database at ${this.dbPath}:`, error);
       throw new InvestigationError(

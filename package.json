@@ -1,6 +1,6 @@
 {
   "name": "buildworks-ai-investigations-mcp",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Investigations MCP by BuildWorks.AI — forensic investigations and root cause analysis server for MCP-compatible IDEs.",
   "main": "dist/index.js",
   "type": "module",
@@ -61,21 +61,21 @@
     "@modelcontextprotocol/sdk": "^0.4.0",
     "better-sqlite3": "^9.2.2",
     "fs-extra": "^11.2.0",
-    "node-cron": "^3.0.3",
-    "winston": "^3.11.0",
     "joi": "^17.12.0",
-    "uuid": "^9.0.1"
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",
-    "@types/node": "^20.10.0",
     "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.17",
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
-    "@types/jest": "^29.5.0",
     "ts-jest": "^29.1.0",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
