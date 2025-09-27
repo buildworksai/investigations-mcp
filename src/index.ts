@@ -38,7 +38,7 @@ class InvestigationMCPServer {
     this.server = new Server(
       {
         name: 'Investigations MCP by BuildWorks.AI',
-        version: '1.0.0',
+        version: '2.0.16',
       }
     );
 

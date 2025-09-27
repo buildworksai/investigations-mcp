@@ -250,6 +250,9 @@ If you encounter `ERR_DLOPEN_FAILED` or similar native module errors, ensure you
 #### Crypto Deprecation Warnings
 If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.0.15 or later, which uses Node.js built-in crypto module instead.
 
+#### MCP Server Connection Issues
+If you encounter "failed to initialize server" or "transport error: server terminated" errors, ensure you're using version 2.0.16 or later, which has improved server stability and error handling.
+
 ## Support
 
 For questions, issues, or contributions:
