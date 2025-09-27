@@ -286,7 +286,12 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.13 (Current)
+### v2.0.14 (Current)
+- **Troubleshooting Documentation**: Added comprehensive troubleshooting section for common issues including ENOTEMPTY errors and SQLite3 native module problems.
+- **Helper Script**: Created `clear-npx-cache.sh` script to help users resolve npx cache issues.
+- **User Experience**: Improved documentation and support for common installation and usage problems.
+
+### v2.0.13
 - **SQLite3 Fix**: Replaced `sqlite3` with `better-sqlite3` to resolve native module compatibility issues in Windsurf IDE and other sandboxed environments.
 - **Native Module Reliability**: Eliminated `ERR_DLOPEN_FAILED` and segment loading errors that occurred when using npx in different environments.
 - **Improved Compatibility**: Better cross-platform support and reduced installation complexity.
