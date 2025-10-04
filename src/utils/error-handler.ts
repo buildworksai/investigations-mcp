@@ -22,7 +22,7 @@ export class ErrorHandler {
     context: ErrorContext,
     maxRetries: number = this.MAX_RETRIES
   ): Promise<T> {
-    let lastError: Error;
+    let lastError: Error | undefined;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -50,7 +50,16 @@ export class ErrorHandler {
       }
     }
 
-    throw this.enhanceError(lastError!, context);
+    if (!lastError) {
+      throw new InvestigationError(
+        'Unknown error occurred during retry operation',
+        'UNKNOWN_RETRY_ERROR',
+        context.investigationId,
+        { context }
+      );
+    }
+
+    throw this.enhanceError(lastError, context);
   }
 
   static handleError(error: unknown, context: ErrorContext): InvestigationError {

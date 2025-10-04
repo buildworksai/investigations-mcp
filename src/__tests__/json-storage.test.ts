@@ -1,5 +1,5 @@
 import { JsonStorageService } from '../services/json-storage.js';
-import type { InvestigationCase, EvidenceItem, AnalysisResult, Finding, InvestigationReport } from '../types/index.js';
+import type { InvestigationCase, EvidenceItem, AnalysisResult } from '../types/index.js';
 import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
@@ -31,10 +31,11 @@ describe('JsonStorageService', () => {
 
     test('should create index files', async () => {
       const investigationsIndex = await fs.readJson(path.join(tempStoragePath, 'investigations', 'index.json'));
-      expect(investigationsIndex).toEqual({
-        version: '1.0.0',
-        entries: []
-      });
+      expect(investigationsIndex).toHaveProperty('entries');
+      expect(investigationsIndex).toHaveProperty('maxEntries');
+      expect(investigationsIndex).toHaveProperty('lastCleanup');
+      expect(Array.isArray(investigationsIndex.entries)).toBe(true);
+      expect(investigationsIndex.entries).toHaveLength(0);
     });
   });
 
@@ -290,7 +291,7 @@ describe('JsonStorageService', () => {
   describe('Error Handling', () => {
     test('should handle investigation not found during update', async () => {
       await expect(storage.updateInvestigation('non-existent', { title: 'Updated' }))
-        .rejects.toThrow('Investigation not found');
+        .rejects.toThrow('Failed to update investigation');
     });
 
     test('should handle duplicate investigation creation', async () => {

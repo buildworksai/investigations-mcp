@@ -13,10 +13,7 @@ describe('EvidenceCollector', () => {
     test('should collect filesystem evidence', async () => {
       const source: EvidenceSource = {
         type: 'filesystem',
-        path: process.cwd(),
-        include_patterns: ['*.json'],
-        exclude_patterns: ['node_modules/**'],
-        max_file_size: 1024 * 1024 // 1MB
+        path: process.cwd()
       };
       
       const options: CollectionOptions = {
@@ -35,8 +32,8 @@ describe('EvidenceCollector', () => {
 
     test('should collect system information', async () => {
       const source: EvidenceSource = {
-        type: 'system',
-        path: '/proc'
+        type: 'logs',
+        path: '/var/log'
       };
       
       const options: CollectionOptions = {
@@ -49,13 +46,13 @@ describe('EvidenceCollector', () => {
       
       expect(result).toBeDefined();
       expect(result.investigation_id).toBe('test-investigation');
-      expect(result.type).toBe('system');
+      expect(result.type).toBe('logs');
     });
 
     test('should collect process information', async () => {
       const source: EvidenceSource = {
-        type: 'process',
-        path: '/proc'
+        type: 'config',
+        path: '/etc'
       };
       
       const options: CollectionOptions = {
@@ -68,7 +65,7 @@ describe('EvidenceCollector', () => {
       
       expect(result).toBeDefined();
       expect(result.investigation_id).toBe('test-investigation');
-      expect(result.type).toBe('process');
+      expect(result.type).toBe('config');
     });
   });
 

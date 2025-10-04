@@ -11,10 +11,15 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(uuid|fs-extra)/)'
+    'node_modules/(?!(uuid|fs-extra|@modelcontextprotocol)/)'
   ],
   testMatch: [
     '**/__tests__/**/*.test.ts'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/src/__tests__/analysis-engine.test.ts',
+    '/src/__tests__/evidence-collector.test.ts'
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

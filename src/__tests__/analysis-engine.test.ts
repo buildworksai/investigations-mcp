@@ -4,20 +4,21 @@ import type { EvidenceItem } from '../types/index.js';
 
 describe('AnalysisEngine', () => {
   let analysisEngine: AnalysisEngine;
-
-  beforeEach(() => {
-    analysisEngine = new AnalysisEngine();
-  });
-
-  describe('Analysis Methods', () => {
-    const testEvidence: EvidenceItem[] = [
+  const testEvidence: EvidenceItem[] = [
       {
         id: 'evidence-1',
         investigation_id: 'test-investigation',
         type: 'log',
         source: 'application.log',
         content: { message: 'Error occurred at 10:00 AM' },
-        metadata: { timestamp: new Date('2024-01-01T10:00:00Z') },
+        metadata: {
+          timestamp: new Date('2024-01-01T10:00:00Z'),
+          size: 1024,
+          checksum: 'test-checksum-1',
+          collected_by: 'test-user',
+          collection_method: 'manual',
+          source_system: 'test-system'
+        },
         chain_of_custody: [],
         tags: ['error'],
         created_at: new Date()
@@ -28,13 +29,25 @@ describe('AnalysisEngine', () => {
         type: 'metric',
         source: 'system.metrics',
         content: { cpu_usage: 95, memory_usage: 80 },
-        metadata: { timestamp: new Date('2024-01-01T10:01:00Z') },
+        metadata: {
+          timestamp: new Date('2024-01-01T10:01:00Z'),
+          size: 2048,
+          checksum: 'test-checksum-2',
+          collected_by: 'test-user',
+          collection_method: 'manual',
+          source_system: 'test-system'
+        },
         chain_of_custody: [],
         tags: ['performance'],
         created_at: new Date()
       }
     ];
 
+  beforeEach(() => {
+    analysisEngine = new AnalysisEngine();
+  });
+
+  describe('Analysis Methods', () => {
     test('should perform timeline analysis', async () => {
       const options: AnalysisOptions = {
         investigation_id: 'test-investigation',
@@ -155,7 +168,6 @@ describe('AnalysisEngine', () => {
       const options: CausalityOptions = {
         investigation_id: 'test-investigation',
         start_event: 'error-occurred',
-        evidence: testEvidence,
         confidence_threshold: 0.7
       };
 
