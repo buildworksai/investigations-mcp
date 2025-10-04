@@ -350,7 +350,13 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.20 (Current)
+### v2.0.21 (Current)
+- **Build Cache Fix**: Fixed GitHub Actions build cache issue that caused version mismatch in published package.
+- **Version Consistency**: Ensured published package content matches version metadata.
+- **IDE Compatibility**: Resolved MCP server red status issue in IDEs.
+- **Package Integrity**: Verified complete package functionality after publication.
+
+### v2.0.20
 - **Zero Deprecated Packages**: Upgraded all dependencies to latest versions, eliminating all deprecated package usage.
 - **ESLint v9 Migration**: Migrated from ESLint v8 (deprecated) to v9 with new flat config format.
 - **TypeScript ESLint v8**: Upgraded to latest TypeScript ESLint packages for better compatibility.
