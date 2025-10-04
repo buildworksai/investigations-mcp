@@ -270,7 +270,7 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.19 or later
+1. **Check version**: Ensure you're using version 2.0.20 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
@@ -295,7 +295,7 @@ rm -rf ~/.npm/_npx
 npx buildworks-ai-investigations-mcp@latest --version
 ```
 
-**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.19+
+**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.20+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
@@ -350,7 +350,15 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.19 (Current)
+### v2.0.20 (Current)
+- **Zero Deprecated Packages**: Upgraded all dependencies to latest versions, eliminating all deprecated package usage.
+- **ESLint v9 Migration**: Migrated from ESLint v8 (deprecated) to v9 with new flat config format.
+- **TypeScript ESLint v8**: Upgraded to latest TypeScript ESLint packages for better compatibility.
+- **MCP SDK v1.19.1**: Upgraded to latest MCP SDK with proper capabilities declaration.
+- **Enhanced Security**: All packages updated to latest versions with zero security vulnerabilities.
+- **Improved Compatibility**: Better compatibility with modern Node.js versions and IDEs.
+
+### v2.0.19
 - **Root Cause Fix**: Proactive detection and prevention of npx cache corruption that causes "failed to initialize server" errors.
 - **Enhanced Pre-install**: Pre-install script now detects corrupted better-sqlite3 installations and prevents installation with clear guidance.
 - **Runtime Error Handling**: Better error messages when native module loading fails, with specific cache clearing instructions.

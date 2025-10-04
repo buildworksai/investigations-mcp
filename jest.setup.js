@@ -1,6 +1,4 @@
 // Jest setup file
-import { jest } from '@jest/globals';
-
 // Make Jest globals available
 global.describe = describe;
 global.test = test;

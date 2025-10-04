@@ -516,7 +516,7 @@ export class EvidenceCollector {
     }
   }
 
-  private async getProcessList(parameters?: any): Promise<any> {
+  private async getProcessList(_parameters?: any): Promise<any> {
     try {
       const { stdout } = await execAsync('ps aux');
       return { processes: stdout };
@@ -1125,13 +1125,13 @@ export class EvidenceCollector {
   }
 
   // Utility methods
-  private filterLogsByTimeRange(content: string, timeRange: any): string {
+  private filterLogsByTimeRange(content: string, _timeRange: any): string {
     // Simple implementation - in practice, this would parse timestamps
     // and filter based on the time range
     return content;
   }
 
-  private applyLogFilters(content: string, filters: any): string {
+  private applyLogFilters(content: string, _filters: any): string {
     // Apply various filters like grep patterns, log levels, etc.
     return content;
   }

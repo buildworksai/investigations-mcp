@@ -3,14 +3,15 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { 
-  InvestigationCase, 
-  EvidenceSource, 
-  InvestigationFilters, 
-  AnalysisOptions,
-  ValidationResult,
-  RootCauseAnalysis 
-} from '../types/index.js';
+// Import types for tool definitions (currently unused but may be needed for future enhancements)
+// import { 
+//   InvestigationCase, 
+//   EvidenceSource, 
+//   InvestigationFilters, 
+//   AnalysisOptions,
+//   ValidationResult,
+//   RootCauseAnalysis 
+// } from '../types/index.js';
 
 export const investigationStartTool: Tool = {
   name: 'investigation_start',

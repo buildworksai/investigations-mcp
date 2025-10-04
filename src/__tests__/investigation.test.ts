@@ -18,7 +18,7 @@ describe('Investigation System', () => {
 
   test('should create database instance', () => {
     expect(database).toBeDefined();
-    expect(database.getDatabasePath()).toContain('investigations.db');
+    expect(database.getDatabasePath()).toBe(':memory:');
   });
 
   test('should initialize database', async () => {

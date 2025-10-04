@@ -6,7 +6,8 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { InvestigationCase, InvestigationReport, EvidenceItem, AnalysisResult } from '../types/index.js';
+import { InvestigationCase, InvestigationReport, EvidenceItem } from '../types/index.js';
+// import { AnalysisResult } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
 
 export interface ReportOptions {
@@ -54,8 +55,6 @@ export class ReportGenerator {
       include_evidence = true,
       include_timeline = true,
       include_analysis = true,
-      include_recommendations = true,
-      template,
       output_path
     } = options;
 

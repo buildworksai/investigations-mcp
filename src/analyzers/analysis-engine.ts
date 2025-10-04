@@ -4,7 +4,19 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { EvidenceItem, AnalysisResult, CausalRelationship, ValidationResult } from '../types/index.js';
+import { 
+  EvidenceItem, 
+  AnalysisResult, 
+  CausalRelationship, 
+  ValidationResult,
+  TimelineEvent,
+  TimelinePattern,
+  PerformanceMetric
+  // PerformanceBottleneck,
+  // SecurityIssue,
+  // CorrelationRule,
+  // StatisticalAnomaly
+} from '../types/index.js';
 import { AnalysisError } from '../types/index.js';
 
 export interface AnalysisOptions {
@@ -78,10 +90,8 @@ export class AnalysisEngine {
 
   async traceCausality(options: CausalityOptions): Promise<CausalRelationship[]> {
     const {
-      investigation_id,
       start_event,
       max_depth = 10,
-      include_contributing_factors = true,
       relationship_types = ['direct', 'contributing'],
       confidence_threshold = 0.7
     } = options;
@@ -128,7 +138,6 @@ export class AnalysisEngine {
 
   async validateHypothesis(options: HypothesisValidationOptions): Promise<ValidationResult> {
     const {
-      investigation_id,
       hypothesis,
       evidence,
       confidence_threshold = 0.8,
@@ -445,40 +454,45 @@ export class AnalysisEngine {
   }
 
   // Helper methods for analysis (simplified implementations)
-  private buildTimeline(evidence: EvidenceItem[]): any[] {
+  private buildTimeline(evidence: EvidenceItem[]): TimelineEvent[] {
     // Sort evidence by timestamp and build timeline
     return evidence
       .sort((a, b) => a.created_at.getTime() - b.created_at.getTime())
       .map(e => ({
+        id: e.id,
+        investigation_id: e.investigation_id,
         timestamp: e.created_at,
-        event: e.type,
+        event_type: e.type,
+        description: `Evidence collected from ${e.source}`,
         source: e.source,
-        evidence_id: e.id
+        evidence_id: e.id,
+        related_events: [],
+        metadata: {}
       }));
   }
 
-  private analyzeTimelinePatterns(timeline: any[]): any[] {
+  private analyzeTimelinePatterns(_timeline: TimelineEvent[]): TimelinePattern[] {
     // Analyze timeline for patterns (simplified)
     return [];
   }
 
-  private generateTimelineConclusions(timeline: any[], patterns: any[], hypothesis?: string): string[] {
+  private generateTimelineConclusions(timeline: TimelineEvent[], _patterns: TimelinePattern[], _hypothesis?: string): string[] {
     const conclusions: string[] = [];
     
     conclusions.push(`Timeline analysis identified ${timeline.length} events`);
     
-    if (patterns.length > 0) {
-      conclusions.push(`Found ${patterns.length} temporal patterns`);
+    if (_patterns.length > 0) {
+      conclusions.push(`Found ${_patterns.length} temporal patterns`);
     }
     
-    if (hypothesis) {
-      conclusions.push(`Timeline analysis ${this.evaluateHypothesisAgainstTimeline(hypothesis, timeline) ? 'supports' : 'does not support'} the hypothesis`);
+    if (_hypothesis) {
+      conclusions.push(`Timeline analysis ${this.evaluateHypothesisAgainstTimeline(_hypothesis, timeline) ? 'supports' : 'does not support'} the hypothesis`);
     }
     
     return conclusions;
   }
 
-  private generateTimelineRecommendations(patterns: any[]): string[] {
+  private generateTimelineRecommendations(patterns: TimelinePattern[]): string[] {
     const recommendations: string[] = [];
     
     recommendations.push('Review timeline for any gaps or missing events');
@@ -502,27 +516,27 @@ export class AnalysisEngine {
   }
 
   // Placeholder methods for other analysis types
-  private async identifyCausalRelationships(evidence: EvidenceItem[], maxDepth: number): Promise<CausalRelationship[]> {
+  private async identifyCausalRelationships(_evidence: EvidenceItem[], _maxDepth: number): Promise<CausalRelationship[]> {
     return [];
   }
 
-  private buildCausalChains(relationships: CausalRelationship[]): any[] {
+  private buildCausalChains(_relationships: CausalRelationship[]): CausalRelationship[] {
     return [];
   }
 
-  private generateCausalConclusions(chains: any[], hypothesis?: string): string[] {
+  private generateCausalConclusions(_chains: CausalRelationship[], _hypothesis?: string): string[] {
     return ['Causal analysis completed'];
   }
 
-  private generateCausalRecommendations(chains: any[]): string[] {
+  private generateCausalRecommendations(_chains: CausalRelationship[]): string[] {
     return ['Review causal relationships for accuracy'];
   }
 
-  private calculateCausalConfidence(relationships: CausalRelationship[]): number {
+  private calculateCausalConfidence(_relationships: CausalRelationship[]): number {
     return 0.7;
   }
 
-  private extractPerformanceMetrics(evidence: EvidenceItem[]): any[] {
+  private extractPerformanceMetrics(evidence: EvidenceItem[]): PerformanceMetric[] {
     return evidence.filter(e => e.type === 'metric').map(e => e.content);
   }
 
@@ -548,7 +562,7 @@ export class AnalysisEngine {
     return patterns;
   }
 
-  private identifyPerformanceBottlenecks(metrics: any[], patterns: any[]): any[] {
+  private identifyPerformanceBottlenecks(metrics: any[], _patterns: any[]): any[] {
     const bottlenecks = [];
     
     // CPU bottlenecks
@@ -570,7 +584,7 @@ export class AnalysisEngine {
     return bottlenecks;
   }
 
-  private generatePerformanceConclusions(bottlenecks: any[], hypothesis?: string): string[] {
+  private generatePerformanceConclusions(bottlenecks: any[], _hypothesis?: string): string[] {
     const conclusions = [];
     
     if (bottlenecks.length === 0) {
@@ -583,8 +597,8 @@ export class AnalysisEngine {
       });
     }
     
-    if (hypothesis) {
-      conclusions.push(`Hypothesis "${hypothesis}" ${bottlenecks.length > 0 ? 'supported' : 'not supported'} by evidence`);
+    if (_hypothesis) {
+      conclusions.push(`Hypothesis "${_hypothesis}" ${bottlenecks.length > 0 ? 'supported' : 'not supported'} by evidence`);
     }
     
     return conclusions;
@@ -760,63 +774,63 @@ export class AnalysisEngine {
     return evidence.filter(e => e.type === 'security' || e.type === 'log').map(e => e.content);
   }
 
-  private analyzeSecurityPatterns(securityData: any[]): any[] {
+  private analyzeSecurityPatterns(_securityData: any[]): any[] {
     return [];
   }
 
-  private identifySecurityIssues(securityData: any[], patterns: any[]): any[] {
+  private identifySecurityIssues(_securityData: any[], _patterns: any[]): any[] {
     return [];
   }
 
-  private generateSecurityConclusions(issues: any[], hypothesis?: string): string[] {
+  private generateSecurityConclusions(_issues: any[], _hypothesis?: string): string[] {
     return ['Security analysis completed'];
   }
 
-  private generateSecurityRecommendations(issues: any[]): string[] {
+  private generateSecurityRecommendations(_issues: any[]): string[] {
     return ['Address identified security issues'];
   }
 
-  private calculateSecurityConfidence(patterns: any[]): number {
+  private calculateSecurityConfidence(_patterns: any[]): number {
     return 0.75;
   }
 
-  private findCorrelations(evidence: EvidenceItem[], rules?: string[]): any[] {
+  private findCorrelations(_evidence: EvidenceItem[], _rules?: string[]): any[] {
     return [];
   }
 
-  private analyzeCorrelationStrength(correlations: any[]): any[] {
+  private analyzeCorrelationStrength(_correlations: any[]): any[] {
     return [];
   }
 
-  private generateCorrelationConclusions(correlations: any[], hypothesis?: string): string[] {
+  private generateCorrelationConclusions(_correlations: any[], _hypothesis?: string): string[] {
     return ['Correlation analysis completed'];
   }
 
-  private generateCorrelationRecommendations(correlations: any[]): string[] {
+  private generateCorrelationRecommendations(_correlations: any[]): string[] {
     return ['Investigate strong correlations further'];
   }
 
-  private calculateCorrelationConfidence(strength: any[]): number {
+  private calculateCorrelationConfidence(_strength: any[]): number {
     return 0.6;
   }
 
-  private performStatisticalAnalysis(evidence: EvidenceItem[]): any {
+  private performStatisticalAnalysis(_evidence: EvidenceItem[]): any {
     return {};
   }
 
-  private identifyStatisticalAnomalies(statistics: any): any[] {
+  private identifyStatisticalAnomalies(_statistics: any): any[] {
     return [];
   }
 
-  private generateStatisticalConclusions(anomalies: any[], hypothesis?: string): string[] {
+  private generateStatisticalConclusions(_anomalies: any[], _hypothesis?: string): string[] {
     return ['Statistical analysis completed'];
   }
 
-  private generateStatisticalRecommendations(anomalies: any[]): string[] {
+  private generateStatisticalRecommendations(_anomalies: any[]): string[] {
     return ['Investigate statistical anomalies'];
   }
 
-  private calculateStatisticalConfidence(statistics: any): number {
+  private calculateStatisticalConfidence(_statistics: any): number {
     return 0.65;
   }
 
@@ -826,10 +840,10 @@ export class AnalysisEngine {
   }
 
   private async findCausalRelationships(
-    startEvent: EvidenceItem,
-    depth: number,
-    relationshipTypes: string[],
-    confidenceThreshold: number
+    _startEvent: EvidenceItem,
+    _depth: number,
+    _relationshipTypes: string[],
+    _confidenceThreshold: number
   ): Promise<CausalRelationship[]> {
     // Simplified causal relationship finding
     return [];

@@ -20,8 +20,8 @@ import { investigationTools } from './tools/investigation-tools.js';
 import {
   InvestigationCase,
   EvidenceItem,
-  AnalysisResult,
-  Finding,
+  // AnalysisResult,
+  // Finding,
   InvestigationError,
   EvidenceError,
   AnalysisError
@@ -38,7 +38,12 @@ class InvestigationMCPServer {
         this.server = new Server(
           {
             name: 'Investigations MCP by BuildWorks.AI',
-            version: '2.0.19',
+            version: '2.0.20',
+          },
+          {
+            capabilities: {
+              tools: {},
+            },
           }
         );
 
@@ -425,7 +430,7 @@ class InvestigationMCPServer {
   }
 
   private async handleGetCase(args: any) {
-    const { investigation_id, include_evidence = false, include_analysis = true } = args;
+    const { investigation_id, include_evidence = false } = args;
 
     const investigation = await this.database.getInvestigation(investigation_id);
     if (!investigation) {
@@ -520,7 +525,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.0.19');
+  console.log('2.0.20');
   process.exit(0);
 }
 

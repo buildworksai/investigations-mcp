@@ -10,11 +10,11 @@ import os from 'os';
 import { 
   InvestigationCase, 
   EvidenceItem, 
-  AnalysisResult, 
-  Finding,
-  TimelineEvent,
-  CausalRelationship,
-  InvestigationReport,
+  // AnalysisResult, 
+  // Finding,
+  // TimelineEvent,
+  // CausalRelationship,
+  // InvestigationReport,
   InvestigationFilters
 } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
@@ -54,7 +54,7 @@ export class InvestigationDatabase {
       try {
         await fs.writeFile(testFile, 'test');
         await fs.remove(testFile);
-      } catch (writeError) {
+      } catch (_writeError) {
         // If we can't write to the preferred location, try fallback locations
         const fallbackPaths = [
           path.join(os.tmpdir(), 'investigations-mcp', 'investigations.db'),
@@ -73,7 +73,7 @@ export class InvestigationDatabase {
             // If we can write here, update the database path
             this.dbPath = fallbackPath;
             break;
-          } catch (fallbackError) {
+          } catch (_fallbackError) {
             continue; // Try next fallback
           }
         }
@@ -138,7 +138,7 @@ export class InvestigationDatabase {
       `);
       // Migration: widen evidence.type CHECK to include new types if existing table has old CHECK
       try {
-        const pragma: any[] = await this.all(`PRAGMA table_info(evidence)`);
+        await this.all(`PRAGMA table_info(evidence)`);
         // naive check: try inserting and rollback on failure
         const testId = 'migrate-check-' + Date.now();
         await this.run('BEGIN');
@@ -171,7 +171,7 @@ export class InvestigationDatabase {
           `);
           await this.run('DROP TABLE evidence_old');
         }
-      } catch (e) {
+      } catch (_e) {
         // best-effort migration; continue
       }
 
@@ -274,7 +274,7 @@ export class InvestigationDatabase {
       await this.run(`CREATE INDEX IF NOT EXISTS idx_timeline_timestamp ON timeline_events (timestamp)`);
 
       this.initialized = true;
-      console.error(`Database initialized successfully at: ${this.dbPath}`);
+      console.log(`Database initialized successfully at: ${this.dbPath}`);
     } catch (error) {
       console.error(`Failed to initialize database at ${this.dbPath}:`, error);
       throw new InvestigationError(

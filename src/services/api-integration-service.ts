@@ -3,7 +3,8 @@
  * Provides integration with external APIs and services
  */
 
-import { InvestigationCase, EvidenceItem, AnalysisResult } from '../types/index.js';
+import { InvestigationCase } from '../types/index.js';
+// import { EvidenceItem, AnalysisResult } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
 
 export interface APIIntegrationOptions {
@@ -51,7 +52,7 @@ export class APIIntegrationService {
   }
 
   async integrate(options: APIIntegrationOptions): Promise<APIIntegrationResult> {
-    const { service, action } = options;
+    const { service } = options;
     
     const integration = this.integrations.get(service);
     if (!integration) {
@@ -195,7 +196,7 @@ export class APIIntegrationService {
 
   // Jenkins Integration
   private async integrateWithJenkins(options: APIIntegrationOptions): Promise<APIIntegrationResult> {
-    const { investigation, action, credentials, parameters } = options;
+    const { action, credentials, parameters } = options;
     
     if (action === 'trigger_build') {
       // Simulate Jenkins API call
@@ -216,7 +217,7 @@ export class APIIntegrationService {
 
   // Prometheus Integration
   private async integrateWithPrometheus(options: APIIntegrationOptions): Promise<APIIntegrationResult> {
-    const { investigation, action, credentials, parameters } = options;
+    const { action, credentials, parameters } = options;
     
     if (action === 'query_metrics') {
       const query = parameters?.query || 'up';
@@ -285,7 +286,7 @@ export class APIIntegrationService {
 
   // Splunk Integration
   private async integrateWithSplunk(options: APIIntegrationOptions): Promise<APIIntegrationResult> {
-    const { investigation, action, credentials, parameters } = options;
+    const { action, credentials, parameters } = options;
     
     if (action === 'search_logs') {
       const query = parameters?.query || 'index=*';
@@ -310,7 +311,7 @@ export class APIIntegrationService {
   }
 
   // Helper methods for formatting data
-  private formatSlackMessage(investigation: InvestigationCase, parameters?: any): string {
+  private formatSlackMessage(investigation: InvestigationCase, _parameters?: any): string {
     return `🔍 *Investigation Update: ${investigation.title}*
 
 *Severity:* ${investigation.severity}
@@ -386,7 +387,7 @@ export class APIIntegrationService {
     };
   }
 
-  private formatGrafanaDashboard(investigation: InvestigationCase, parameters?: any): any {
+  private formatGrafanaDashboard(investigation: InvestigationCase, _parameters?: any): any {
     return {
       dashboard: {
         title: `Investigation Dashboard: ${investigation.title}`,
@@ -420,7 +421,7 @@ export class APIIntegrationService {
   }
 
   // Utility methods
-  private async makeAPICall(method: string, url: string, data: any, credentials?: any): Promise<any> {
+  private async makeAPICall(method: string, url: string, _data: any, _credentials?: any): Promise<any> {
     // Simulate API call - in real implementation, use fetch or axios
     return {
       status: 200,
@@ -517,7 +518,7 @@ Total findings: ${investigation.findings.length}
 \`${investigation.id}\``;
   }
 
-  private generateGrafanaPanels(investigation: InvestigationCase): any[] {
+  private generateGrafanaPanels(_investigation: InvestigationCase): any[] {
     return [
       {
         title: 'Investigation Timeline',

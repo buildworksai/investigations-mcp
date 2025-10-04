@@ -3,7 +3,8 @@
  * Generates charts, graphs, and visual representations of investigation data
  */
 
-import { InvestigationCase, EvidenceItem, AnalysisResult } from '../types/index.js';
+import { InvestigationCase } from '../types/index.js';
+// import { EvidenceItem, AnalysisResult } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
 
 export interface VisualizationOptions {
@@ -90,7 +91,7 @@ export class VisualizationService {
   }
 
   private async generateTimelineVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create timeline data
     const timelineData = this.extractTimelineData(investigation);
@@ -112,7 +113,7 @@ export class VisualizationService {
   <!-- Timeline points -->
   ${timelineData.map((point, index) => `
     <circle cx="${50 + (index * (width-100) / (timelineData.length-1))}" cy="${height/2}" r="8" class="timeline-point"/>
-    ${include_labels ? `
+    ${options.include_labels ? `
       <text x="${50 + (index * (width-100) / (timelineData.length-1))}" y="${height/2 - 20}" text-anchor="middle" class="timeline-label">${point.event}</text>
       <text x="${50 + (index * (width-100) / (timelineData.length-1))}" y="${height/2 + 35}" text-anchor="middle" class="timeline-date">${point.date}</text>
     ` : ''}
@@ -126,7 +127,7 @@ export class VisualizationService {
   }
 
   private async generateEvidenceFlowVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create evidence flow data
     const evidenceData = this.extractEvidenceFlowData(investigation);
@@ -165,7 +166,7 @@ export class VisualizationService {
   }
 
   private async generateAnalysisConfidenceVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create analysis confidence data
     const analysisData = this.extractAnalysisConfidenceData(investigation);
@@ -199,7 +200,7 @@ export class VisualizationService {
   }
 
   private async generateSeverityDistributionVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create severity distribution data
     const severityData = this.extractSeverityDistributionData(investigation);
@@ -232,7 +233,7 @@ export class VisualizationService {
   }
 
   private async generateCategoryBreakdownVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create category breakdown data
     const categoryData = this.extractCategoryBreakdownData(investigation);
@@ -266,7 +267,7 @@ export class VisualizationService {
   }
 
   private async generateNetworkDiagramVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create network diagram data
     const networkData = this.extractNetworkDiagramData(investigation);
@@ -300,7 +301,7 @@ export class VisualizationService {
   }
 
   private async generateProcessFlowVisualization(investigation: InvestigationCase, options: any): Promise<string> {
-    const { width, height, theme, include_labels, interactive } = options;
+    const { width, height } = options;
     
     // Create process flow data
     const processData = this.extractProcessFlowData(investigation);
@@ -469,7 +470,7 @@ export class VisualizationService {
     return { nodes, edges };
   }
 
-  private extractProcessFlowData(investigation: InvestigationCase): any[] {
+  private extractProcessFlowData(_investigation: InvestigationCase): any[] {
     return [
       { name: 'Start', status: 'Completed' },
       { name: 'Evidence Collection', status: 'Completed' },

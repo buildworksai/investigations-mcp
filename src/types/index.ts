@@ -241,3 +241,70 @@ export type InvestigationSeverity = InvestigationCase['severity'];
 export type InvestigationCategory = InvestigationCase['category'];
 export type EvidenceType = EvidenceItem['type'];
 export type AnalysisType = AnalysisResult['type'];
+
+// Analysis Engine Types
+
+export interface TimelinePattern {
+  pattern_type: string;
+  description: string;
+  frequency: number;
+  confidence: number;
+}
+
+export interface PerformanceMetric {
+  metric_type: 'cpu' | 'memory' | 'disk' | 'network';
+  value: number;
+  unit: string;
+  timestamp: Date;
+  threshold?: number;
+}
+
+export interface PerformanceBottleneck {
+  type: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+  recommendations: string[];
+}
+
+export interface SecurityIssue {
+  issue_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  affected_systems: string[];
+  remediation: string[];
+}
+
+export interface CorrelationRule {
+  rule_id: string;
+  description: string;
+  conditions: string[];
+  confidence_threshold: number;
+}
+
+export interface StatisticalAnomaly {
+  anomaly_type: string;
+  description: string;
+  confidence: number;
+  affected_metrics: string[];
+}
+
+export interface VisualizationOptions {
+  width: number;
+  height: number;
+  theme?: string;
+  include_labels?: boolean;
+  interactive?: boolean;
+}
+
+export interface APICredentials {
+  base_url: string;
+  api_key?: string;
+  username?: string;
+  password?: string;
+  token?: string;
+}
+
+export interface APIParameters {
+  [key: string]: string | number | boolean | string[] | number[] | boolean[];
+}
