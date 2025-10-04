@@ -270,7 +270,7 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.23 or later
+1. **Check version**: Ensure you're using version 2.0.24 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
@@ -295,7 +295,7 @@ rm -rf ~/.npm/_npx
 npx buildworks-ai-investigations-mcp@latest --version
 ```
 
-**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.23+
+**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.24+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
