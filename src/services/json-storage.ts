@@ -14,6 +14,11 @@ import type {
   InvestigationFilters
 } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
+import { FileLockManager } from '../utils/file-lock.js';
+import { InputValidator } from '../utils/input-validator.js';
+import { logger } from '../utils/logger.js';
+import { ErrorHandler, StorageError } from '../utils/error-handler.js';
+import { EnvironmentConfigManager } from '../config/environment.js';
 
 interface StorageIndex {
   entries: Array<{
@@ -45,38 +50,60 @@ export class JsonStorageService {
   private storagePath: string;
   private initialized: boolean = false;
   private readonly MAX_INVESTIGATIONS: number;
+  private config: EnvironmentConfigManager;
 
   constructor(storagePath?: string, maxInvestigations?: number) {
+    this.config = EnvironmentConfigManager.getInstance();
+    
     if (storagePath) {
       this.storagePath = storagePath;
     } else {
-      // Use ./.investigations-mcp as requested
-      this.storagePath = path.join(process.cwd(), '.investigations-mcp');
+      this.storagePath = this.config.getStoragePath();
     }
     
-    // Set FIFO limit - use 5 for testing, 50 for production
-    this.MAX_INVESTIGATIONS = maxInvestigations || (storagePath?.includes('test') ? 5 : 50);
+    if (maxInvestigations) {
+      this.MAX_INVESTIGATIONS = maxInvestigations;
+    } else {
+      // Use 5 for test paths, configured value for production
+      this.MAX_INVESTIGATIONS = this.storagePath.includes('test') ? 5 : this.config.getMaxInvestigations();
+    }
   }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    const context = ErrorHandler.createContext('initialize_storage', undefined, undefined, {
+      storagePath: this.storagePath,
+      maxInvestigations: this.MAX_INVESTIGATIONS
+    });
+
     try {
+      logger.info('Initializing JSON storage', {
+        operation: 'storage_initialize',
+        metadata: { storagePath: this.storagePath, maxInvestigations: this.MAX_INVESTIGATIONS }
+      });
+
       // Ensure storage directory structure exists
       await this.ensureStorageStructure();
       
       // Initialize index files if they don't exist
       await this.initializeIndexes();
       
+      // Cleanup any stale locks
+      await FileLockManager.cleanupStaleLocks(this.storagePath);
+      
       this.initialized = true;
-      console.log(`JSON storage initialized successfully at: ${this.storagePath}`);
+      logger.info('JSON storage initialized successfully', {
+        operation: 'storage_initialized',
+        metadata: { storagePath: this.storagePath }
+      });
     } catch (error) {
-      throw new InvestigationError(
-        `Failed to initialize JSON storage at ${this.storagePath}: ${error}`,
-        'STORAGE_INIT_ERROR',
-        undefined,
-        { error }
-      );
+      logger.error('Failed to initialize JSON storage', error as Error, {
+        operation: 'storage_initialize_failed',
+        metadata: { storagePath: this.storagePath }
+      });
+      
+      throw ErrorHandler.handleError(error, context);
     }
   }
 

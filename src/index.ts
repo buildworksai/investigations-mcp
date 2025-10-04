@@ -530,36 +530,30 @@ if (process.argv.includes('--version')) {
 }
 
 if (process.argv.includes('--config')) {
-  console.log(JSON.stringify({
-    error: 'Configuration module not available',
-    message: 'Environment configuration has been removed for production release'
-  }, null, 2));
-  process.exit(1);
+  try {
+    const { EnvironmentConfigManager } = await import('./config/environment.js');
+    const configManager = EnvironmentConfigManager.getInstance();
+    const config = configManager.getConfig();
+    
+    console.log(JSON.stringify(config, null, 2));
+    process.exit(0);
+  } catch (error) {
+    console.log(JSON.stringify({
+      error: 'Configuration module not available',
+      message: error instanceof Error ? error.message : String(error)
+    }, null, 2));
+    process.exit(1);
+  }
 }
 
 if (process.argv.includes('--health')) {
   try {
-    const database = new InvestigationDatabase();
-    await database.initialize();
+    const { HealthMonitor } = await import('./utils/health-monitor.js');
+    const healthMonitor = HealthMonitor.getInstance();
+    const healthStatus = await healthMonitor.performHealthCheck();
     
-    const investigations = await database.listInvestigations();
-    const storagePath = database.getStoragePath();
-    
-    console.log(JSON.stringify({
-      status: 'healthy',
-      version: '2.2.1',
-      timestamp: new Date().toISOString(),
-      storage: {
-        path: storagePath,
-        investigations: investigations.length,
-        maxInvestigations: 50
-      },
-      performance: {
-        activeOperations: 0,
-        maxConcurrent: 5
-      }
-    }, null, 2));
-    process.exit(0);
+    console.log(JSON.stringify(healthStatus, null, 2));
+    process.exit(healthStatus.status === 'healthy' ? 0 : 1);
   } catch (error) {
     console.log(JSON.stringify({
       status: 'unhealthy',
