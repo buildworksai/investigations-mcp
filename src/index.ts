@@ -38,7 +38,7 @@ class InvestigationMCPServer {
         this.server = new Server(
           {
             name: 'Investigations MCP by BuildWorks.AI',
-            version: '2.0.22',
+            version: '2.0.23',
           },
           {
             capabilities: {
@@ -525,7 +525,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.0.22');
+  console.log('2.0.23');
   process.exit(0);
 }
 

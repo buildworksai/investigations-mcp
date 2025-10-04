@@ -350,7 +350,13 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.22 (Current)
+### v2.0.23 (Current)
+- **GitHub Actions Fix**: Fixed GitHub Actions workflow to ensure correct package publication.
+- **Build Verification**: Added build and package verification steps to prevent version mismatches.
+- **Cache Clearing**: Added npm cache clearing to prevent cached dependency issues.
+- **Package Integrity**: Ensured published package content matches source code version.
+
+### v2.0.22
 - **Package Lock Fix**: Regenerated package-lock.json with fresh dependencies to resolve build cache issues.
 - **Version Consistency**: Ensured all version references are consistent across the codebase.
 - **IDE Compatibility**: Resolved MCP server red status issue in IDEs.
