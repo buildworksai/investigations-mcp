@@ -42,6 +42,73 @@ Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol
 - **Visualization Tools**: Timeline, evidence flow, analysis confidence, severity distribution, category breakdown, network diagram, process flow
 - **API Integrations**: Slack, Jira, Confluence, GitHub, GitLab, Jenkins, Prometheus, Grafana, Elasticsearch, Splunk
 
+## ⚠️ Security Disclaimer
+
+**IMPORTANT SECURITY NOTICE**: This software is designed for forensic investigations and root cause analysis. Users must understand and accept the following security implications:
+
+### Data Collection & Privacy
+- **Sensitive Data**: This tool collects system information, logs, configurations, and potentially sensitive data
+- **Data Storage**: All investigation data is stored locally in JSON files in `./.investigations-mcp/` directory
+- **No Encryption**: Data is stored in plain text JSON format without encryption
+- **Data Retention**: Automatic FIFO cleanup removes old investigations (max 50)
+- **Storage Management**: Users are responsible for managing the `.investigations-mcp/` folder
+- **Git Ignore**: Users must add `.investigations-mcp/` to their `.gitignore` file to prevent committing sensitive data
+
+### Security Considerations
+- **Access Control**: Ensure proper file permissions on the storage directory
+- **Network Security**: Evidence collection may involve network requests and data transmission
+- **System Access**: The tool requires system-level access to collect evidence
+- **Data Sensitivity**: Be aware of what data is being collected and stored
+
+### Compliance & Legal
+- **Authorization Required**: Only use on systems you own or have explicit permission to investigate
+- **Data Protection**: Comply with applicable data protection laws (GDPR, CCPA, etc.)
+- **Chain of Custody**: Maintain proper chain of custody for forensic evidence
+- **Legal Compliance**: Ensure investigations comply with local laws and regulations
+
+### Limitations
+- **No Warranty**: This software is provided "as is" without security guarantees
+- **Use at Own Risk**: Users assume all risks associated with data collection and storage
+- **Professional Use**: Intended for qualified professionals in controlled environments
+
+**By using this software, you acknowledge and accept these security implications and limitations.**
+
+## Storage Management
+
+### Investigation Data Storage
+All investigation data is stored in the `./.investigations-mcp/` directory with the following structure:
+```
+.investigations-mcp/
+├── investigations/
+│   ├── {investigation_id}.json
+│   └── index.json
+├── evidence/
+│   ├── {investigation_id}/
+│   │   └── {evidence_id}.json
+│   └── index.json
+├── analysis/
+│   ├── {investigation_id}/
+│   │   └── {analysis_id}.json
+│   └── index.json
+└── reports/
+    ├── {investigation_id}/
+    │   └── {report_id}.json
+    └── index.json
+```
+
+### User Responsibilities
+- **Directory Management**: Users are responsible for creating, managing, and cleaning up the `.investigations-mcp/` folder
+- **Git Ignore**: **CRITICAL**: Add `.investigations-mcp/` to your `.gitignore` file to prevent committing sensitive investigation data
+- **File Permissions**: Ensure proper file permissions on the storage directory
+- **Data Cleanup**: Manually delete the folder when no longer needed
+- **Backup**: Create backups of investigation data if needed for long-term storage
+
+### Example .gitignore Entry
+```gitignore
+# Investigations MCP storage directory
+.investigations-mcp/
+```
+
 ## Installation
 
 ### Prerequisites
@@ -270,21 +337,18 @@ This is a common npm cache corruption issue. The package includes automatic dete
 # Clear npm and npx cache
 npm cache clean --force
 rm -rf ~/.npm/_npx
-
-# Or use the provided script
-./scripts/clear-npx-cache.sh
 ```
 
-#### SQLite3 Native Module Issues
-If you encounter `ERR_DLOPEN_FAILED` or similar native module errors, ensure you're using version 2.0.13 or later, which uses `better-sqlite3` for improved compatibility.
+#### Storage System
+The application now uses JSON-based file storage instead of SQLite, eliminating native module compatibility issues. All data is stored in the `./.investigations-mcp/` directory with automatic FIFO management.
 
 #### Crypto Deprecation Warnings
-If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.0.15 or later, which uses Node.js built-in crypto module instead.
+If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.2.1 or later, which uses Node.js built-in crypto module instead.
 
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.26 or later
+1. **Check version**: Ensure you're using version 2.2.1 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
@@ -307,41 +371,9 @@ If you encounter "failed to initialize server" or "transport error: server termi
    npm install -g buildworks-ai-investigations-mcp@latest
    ```
 
-#### NODE_MODULE_VERSION Mismatch Errors
-If you see errors about "NODE_MODULE_VERSION" or "was compiled against a different Node.js version":
+#### Native Module Issues (Resolved)
+The application now uses JSON-based file storage, eliminating all native module compatibility issues. No more NODE_MODULE_VERSION or better-sqlite3 errors!
 
-**Root Cause**: better-sqlite3 native module was compiled for a different Node.js version than what you're running.
-
-**Solutions**:
-1. **Reinstall Node.js** from official source: https://nodejs.org/
-2. **Use Node Version Manager (nvm)**:
-   ```bash
-   nvm install 18
-   nvm use 18
-   ```
-3. **Clear all caches and reinstall**:
-   ```bash
-   npm cache clean --force
-   rm -rf ~/.npm/_npx
-   npm install -g buildworks-ai-investigations-mcp@latest
-   ```
-
-#### better-sqlite3 Native Module Errors
-If you see errors mentioning `better_sqlite3.node`, `bindings.js`, or "failed to initialize server":
-
-**Root Cause**: Corrupted npx cache with incomplete native module installation
-
-**Solution** (Required):
-```bash
-# Clear all caches
-npm cache clean --force
-rm -rf ~/.npm/_npx
-
-# Fresh installation
-npx buildworks-ai-investigations-mcp@latest --version
-```
-
-**Prevention**: The package now includes automatic detection of corrupted cache and NODE_MODULE_VERSION issues in v2.0.26+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
@@ -371,7 +403,7 @@ For questions, issues, or contributions:
 - [x] Basic investigation case management
 - [x] Evidence collection from common sources
 - [x] Simple analysis and reporting
-- [x] SQLite database setup
+- [x] JSON-based file storage setup
 - [x] MCP server implementation
 - [x] npm and GitHub Packages publishing
 - [x] Docker containerization
@@ -396,11 +428,23 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.26 (Current)
-- **Node.js Compatibility Fixes**: Fixed NODE_MODULE_VERSION mismatch issues with better-sqlite3.
-- **Enhanced Error Handling**: Comprehensive error messages for native module compatibility issues.
-- **Preinstall Validation**: Added NODE_MODULE_VERSION validation and Node.js version checking.
-- **better-sqlite3 Pinning**: Pinned to version 11.9.1 for maximum Node.js 18 compatibility.
+### v2.2.1 (Current)
+- **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage with FIFO management.
+- **Enhanced Storage Architecture**: Organized file structure with automatic cleanup and indexing.
+- **Improved Performance**: Eliminated native module dependencies for better compatibility.
+- **Comprehensive Testing**: Updated test suite with FIFO enforcement and date handling.
+- **Migration Utility**: Added migration script for existing SQLite users.
+- **Updated Documentation**: Complete documentation overhaul reflecting new storage system.
+- **Docker Integration**: Updated Docker configurations for JSON storage.
+- **Simplified Setup**: Removed complex setup scripts and native module requirements.
+- **Better Error Handling**: Enhanced error messages and troubleshooting guides.
+- **Production Ready**: Fully tested and verified storage system with automatic cleanup.
+
+### v2.0.26
+- **JSON Storage Migration**: Migrated from SQLite to JSON-based file storage for better compatibility.
+- **FIFO Management**: Automatic cleanup of old investigations (max 50).
+- **Enhanced Error Handling**: Comprehensive error messages for storage operations.
+- **Simplified Dependencies**: Removed native module dependencies.
 - **Engine Requirements**: Added explicit Node.js 18+ and npm 8+ requirements.
 - **Global Installation Update System**: Added comprehensive global installation update mechanisms.
 - **GitHub Actions Integration**: Automated global installation updates via CI/CD pipeline.
@@ -448,11 +492,11 @@ For questions, issues, or contributions:
 - **Improved Compatibility**: Better compatibility with modern Node.js versions and IDEs.
 
 ### v2.0.19
-- **Root Cause Fix**: Proactive detection and prevention of npx cache corruption that causes "failed to initialize server" errors.
-- **Enhanced Pre-install**: Pre-install script now detects corrupted better-sqlite3 installations and prevents installation with clear guidance.
-- **Runtime Error Handling**: Better error messages when native module loading fails, with specific cache clearing instructions.
-- **Post-install Validation**: Post-install script validates better-sqlite3 native module integrity.
-- **Comprehensive Documentation**: Updated troubleshooting with specific better-sqlite3 native module error solutions.
+- **Storage System Overhaul**: Complete migration to JSON-based file storage.
+- **FIFO Management**: Automatic cleanup of old investigations to prevent storage bloat.
+- **Enhanced Error Handling**: Better error messages for storage operations.
+- **Simplified Architecture**: Removed complex native module dependencies.
+- **Comprehensive Documentation**: Updated troubleshooting and setup guides.
 
 ### v2.0.18
 - **MCP Compliance**: Routed startup diagnostics to stderr so MCP clients receive clean stdout responses.
@@ -473,13 +517,11 @@ For questions, issues, or contributions:
 - **Improved Reliability**: Cleaner dependency tree with no deprecated packages.
 
 ### v2.0.14
-- **Troubleshooting Documentation**: Added comprehensive troubleshooting section for common issues including ENOTEMPTY errors and SQLite3 native module problems.
-- **Helper Script**: Created `clear-npx-cache.sh` script to help users resolve npx cache issues.
+- **Troubleshooting Documentation**: Added comprehensive troubleshooting section for common issues.
 - **User Experience**: Improved documentation and support for common installation and usage problems.
 
 ### v2.0.13
-- **SQLite3 Fix**: Replaced `sqlite3` with `better-sqlite3` to resolve native module compatibility issues in Windsurf IDE and other sandboxed environments.
-- **Native Module Reliability**: Eliminated `ERR_DLOPEN_FAILED` and segment loading errors that occurred when using npx in different environments.
+- **Storage System**: Initial implementation of file-based storage system.
 - **Improved Compatibility**: Better cross-platform support and reduced installation complexity.
 
 ### v2.0.12
@@ -540,5 +582,5 @@ For questions, issues, or contributions:
 - Basic evidence collection and analysis
 - Timeline reconstruction and causal tracing
 - Multi-format report generation
-- SQLite database with proper schema
+- JSON-based file storage with FIFO management
 - Comprehensive MCP tool suite

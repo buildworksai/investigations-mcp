@@ -4,7 +4,7 @@ src/
 tsconfig.json
 
 # Development files
-.eslintrc.js
+eslint.config.js
 .gitignore
 docker-compose*.yml
 Dockerfile*

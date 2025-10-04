@@ -10,6 +10,9 @@ export default {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid|fs-extra)/)'
+  ],
   testMatch: [
     '**/__tests__/**/*.test.ts'
   ],

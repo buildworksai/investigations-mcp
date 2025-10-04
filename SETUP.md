@@ -1,4 +1,4 @@
-# Investigations MCP Tools - Setup Guide
+# Investigations MCP Tools - Setup Guide (v2.2.1)
 
 ## Quick Start
 
@@ -6,6 +6,22 @@
 - Node.js 18.0.0 or higher
 - npm or yarn package manager
 - Docker (optional, for containerized deployment)
+
+### What's New in v2.2.1
+- **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage
+- **Automatic FIFO Management**: Old investigations automatically cleaned up (max 50)
+- **No Database Setup**: No SQLite or database configuration required
+- **Enhanced Performance**: Eliminated native module dependencies
+- **Simplified Architecture**: Human-readable JSON files in `./.investigations-mcp/`
+
+### ⚠️ Security Notice
+**IMPORTANT**: This software collects sensitive system data and stores it locally in JSON format without encryption. Ensure you have proper authorization and follow security best practices. See the full security disclaimer in README.md and LICENSE files.
+
+### Storage Folder Management
+- **Storage Location**: All investigation data is stored in `./.investigations-mcp/` directory
+- **User Responsibility**: You are responsible for managing this folder
+- **Git Ignore**: **CRITICAL**: Add `.investigations-mcp/` to your `.gitignore` file
+- **Cleanup**: Manually delete the folder when no longer needed
 
 ### Installation
 
@@ -15,9 +31,10 @@
    cd investigations-mcp
    ```
 
-2. **Run the setup script**
+2. **Install dependencies and build**
    ```bash
-   ./scripts/setup.sh
+   npm install
+   npm run build
    ```
 
 3. **Start the MCP server**
@@ -56,7 +73,7 @@ npm run build
 
 ### 3. Create Directories
 ```bash
-mkdir -p data reports
+mkdir -p reports
 ```
 
 ### 4. Start the Server
@@ -68,16 +85,10 @@ npm start
 
 ### Environment Variables
 - `NODE_ENV`: Set to `production` or `development`
-- `DB_PATH`: Path to SQLite database file (default: `./investigations.db`)
 - `REPORTS_DIR`: Directory for generated reports (default: `./reports`)
 
-### Database
-The system uses SQLite by default. For production deployments, consider using PostgreSQL:
-
-```typescript
-// In src/services/database.ts
-const database = new InvestigationDatabase('postgresql://user:pass@host:port/db');
-```
+### Storage
+The system uses JSON-based file storage by default. All data is stored in the `./.investigations-mcp/` directory with automatic FIFO management (maximum 50 investigations).
 
 ## MCP Client Configuration
 

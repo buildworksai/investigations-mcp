@@ -1,3 +1,4 @@
+# Investigations MCP Tools v2.2.1
 # Use Node.js 18 LTS as base image
 FROM node:18-alpine
 
@@ -16,6 +17,9 @@ COPY dist/ ./dist/
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S mcp -u 1001
+
+# Create storage directory for JSON files
+RUN mkdir -p /app/.investigations-mcp
 
 # Change ownership of the app directory
 RUN chown -R mcp:nodejs /app

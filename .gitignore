@@ -108,3 +108,6 @@ Thumbs.db
 data/
 reports/
 investigations.db
+
+# JSON Storage System (v2.2.1)
+.investigations-mcp/

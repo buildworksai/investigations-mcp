@@ -38,7 +38,7 @@ class InvestigationMCPServer {
             this.server = new Server(
               {
                 name: 'Investigations MCP by BuildWorks.AI',
-                version: '2.0.26',
+                version: '2.2.1',
               },
           {
             capabilities: {
@@ -54,8 +54,8 @@ class InvestigationMCPServer {
 
     this.setupHandlers();
     
-    // Log database path for debugging (stderr to avoid interfering with MCP stdio)
-    console.error(`Database will be created at: ${this.database.getDatabasePath()}`);
+    // Log storage path for debugging (stderr to avoid interfering with MCP stdio)
+    console.error(`JSON storage will be created at: ${this.database.getDatabasePath()}`);
   }
 
   private setupHandlers(): void {
@@ -525,7 +525,244 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.0.26');
+  console.log('2.2.1');
+  process.exit(0);
+}
+
+if (process.argv.includes('--config')) {
+  try {
+    const { EnvironmentConfigManager } = await import('./config/environment.js');
+    const configManager = EnvironmentConfigManager.getInstance();
+    const config = configManager.getConfig();
+    
+    console.log(JSON.stringify(config, null, 2));
+    process.exit(0);
+  } catch (error) {
+    console.log(JSON.stringify({
+      error: 'Configuration module not available',
+      message: error instanceof Error ? error.message : String(error)
+    }, null, 2));
+    process.exit(1);
+  }
+}
+
+if (process.argv.includes('--health')) {
+  try {
+    const database = new InvestigationDatabase();
+    await database.initialize();
+    
+    const investigations = await database.listInvestigations();
+    const storagePath = database.getStoragePath();
+    
+    console.log(JSON.stringify({
+      status: 'healthy',
+      version: '2.2.1',
+      timestamp: new Date().toISOString(),
+      storage: {
+        path: storagePath,
+        investigations: investigations.length,
+        maxInvestigations: 50
+      },
+      performance: {
+        activeOperations: 0,
+        maxConcurrent: 5
+      }
+    }, null, 2));
+    process.exit(0);
+  } catch (error) {
+    console.log(JSON.stringify({
+      status: 'unhealthy',
+      version: '2.2.1',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : String(error)
+    }, null, 2));
+    process.exit(1);
+  }
+}
+
+if (process.argv.includes('--storage-info')) {
+  try {
+    const database = new InvestigationDatabase();
+    await database.initialize();
+    
+    const investigations = await database.listInvestigations();
+    const storagePath = database.getStoragePath();
+    
+    console.log(JSON.stringify({
+      storagePath,
+      totalInvestigations: investigations.length,
+      maxInvestigations: 50,
+      storageType: 'JSON',
+      fifoEnabled: true,
+      investigations: investigations.map(inv => ({
+        id: inv.id,
+        title: inv.title,
+        status: inv.status,
+        created_at: inv.created_at,
+        updated_at: inv.updated_at
+      }))
+    }, null, 2));
+    process.exit(0);
+  } catch (error) {
+    console.log(JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      storagePath: './.investigations-mcp'
+    }, null, 2));
+    process.exit(1);
+  }
+}
+
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log(`
+🔍 Investigations MCP Tools v2.2.1
+BuildWorks.AI - Forensic Investigation & Root Cause Analysis
+
+USAGE:
+  investigations-mcp [OPTIONS]
+
+OPTIONS:
+  --version, -v     Show version information
+  --help, -h        Show this help message
+  --config          Show current configuration
+  --health          Perform health check
+  --storage-info    Show storage information
+
+DESCRIPTION:
+  Investigations MCP Tools provides comprehensive forensic investigation 
+  capabilities with evidence-based analysis. It integrates with Model 
+  Context Protocol (MCP) to enable AI-powered investigation workflows.
+
+FEATURES:
+  📁 JSON Storage System
+     • File-based storage with FIFO limit (50 investigations)
+     • Automatic cleanup of old investigations
+     • No SQLite dependency - pure JSON storage
+
+  🔍 Evidence Collection
+     • Filesystem scanning with pattern matching
+     • System information gathering
+     • Process and network data collection
+     • Log file analysis
+     • Configuration file collection
+     • Metrics and monitoring data
+
+  🧠 Analysis Engine
+     • Timeline analysis
+     • Causal analysis
+     • Performance analysis
+     • Security analysis
+     • Correlation analysis
+     • Statistical analysis
+
+  📊 Report Generation
+     • Automated investigation reports
+     • Evidence summaries
+     • Analysis results
+     • Recommendations
+     • Executive summaries
+
+  🛡️ Security Features
+     • Input validation and sanitization
+     • Path traversal protection
+     • XSS prevention
+     • File type validation
+     • Size limits and quotas
+
+  ⚡ Performance & Reliability
+     • Configurable concurrent operations
+     • Retry logic with exponential backoff
+     • Timeout protection
+     • Graceful error handling
+     • Resource usage monitoring
+
+MCP TOOLS:
+  investigation_start              Start a new investigation
+  investigation_collect_evidence   Collect evidence from various sources
+  investigation_analyze_evidence   Analyze collected evidence
+  investigation_trace_causality    Trace causal relationships
+  investigation_validate_hypothesis Validate investigation hypotheses
+  investigation_document_findings  Document investigation findings
+  investigation_generate_report    Generate investigation reports
+  investigation_list_cases         List all investigation cases
+  investigation_get_case           Get specific investigation details
+  investigation_search_evidence    Search through collected evidence
+
+ENVIRONMENT VARIABLES:
+  INVESTIGATIONS_STORAGE_PATH      Storage directory (default: ./.investigations-mcp)
+  INVESTIGATIONS_MAX_COUNT         Max investigations (default: 50)
+  INVESTIGATIONS_MAX_FILE_SIZE     Max file size in bytes (default: 104857600)
+  INVESTIGATIONS_ENABLE_VALIDATION Enable input validation (default: true)
+  INVESTIGATIONS_ENABLE_SECURITY   Enable security scanning (default: true)
+  INVESTIGATIONS_MAX_CONCURRENT    Max concurrent operations (default: 5)
+  INVESTIGATIONS_OPERATION_TIMEOUT Operation timeout in ms (default: 30000)
+  INVESTIGATIONS_RETRY_ATTEMPTS    Retry attempts (default: 3)
+  INVESTIGATIONS_LOG_LEVEL         Log level: debug|info|warn|error (default: info)
+  INVESTIGATIONS_ENABLE_AUDIT      Enable audit logging (default: true)
+  INVESTIGATIONS_ENABLE_API        Enable API integration (default: true)
+  INVESTIGATIONS_API_TIMEOUT       API timeout in ms (default: 10000)
+  INVESTIGATIONS_API_RETRIES       API retry attempts (default: 3)
+  NODE_ENV                         Environment: development|production (default: development)
+  INVESTIGATIONS_DEBUG             Enable debug mode (default: false)
+
+STORAGE:
+  All investigation data is stored in JSON format in the .investigations-mcp/ directory:
+  .investigations-mcp/
+  ├── investigations/          # Investigation cases
+  │   ├── {id}.json           # Individual investigations
+  │   └── index.json          # Investigation index
+  ├── evidence/               # Collected evidence
+  │   ├── {investigation_id}/ # Evidence per investigation
+  │   └── index.json          # Evidence index
+  ├── analysis/               # Analysis results
+  │   ├── {investigation_id}/ # Analysis per investigation
+  │   └── index.json          # Analysis index
+  └── reports/                # Generated reports
+      ├── {investigation_id}/ # Reports per investigation
+      └── index.json          # Report index
+
+SECURITY NOTICE:
+  ⚠️  This tool collects sensitive system data and stores it locally in JSON format.
+  ⚠️  Ensure you have proper authorization and follow security best practices.
+  ⚠️  Add .investigations-mcp/ to your .gitignore file to prevent data exposure.
+  ⚠️  See LICENSE file for complete security disclaimer and limitations.
+
+EXAMPLES:
+  # Start the MCP server
+  investigations-mcp
+
+  # Check version
+  investigations-mcp --version
+
+  # Show configuration
+  investigations-mcp --config
+
+  # Perform health check
+  investigations-mcp --health
+
+  # Show storage information
+  investigations-mcp --storage-info
+
+  # With custom storage path
+  INVESTIGATIONS_STORAGE_PATH=/custom/path investigations-mcp
+
+  # Production deployment
+  NODE_ENV=production INVESTIGATIONS_LOG_LEVEL=warn investigations-mcp
+
+DOCUMENTATION:
+  • README.md              - Getting started guide
+  • SETUP.md               - Installation and setup
+  • PRODUCTION_READY.md    - Production deployment guide
+  • examples/              - Usage examples
+  • LICENSE                - License and security disclaimer
+
+SUPPORT:
+  • GitHub: https://github.com/buildworks-ai/investigations-mcp
+  • Issues: https://github.com/buildworks-ai/investigations-mcp/issues
+  • Documentation: https://github.com/buildworks-ai/investigations-mcp#readme
+
+BuildWorks.AI - Professional Investigation Tools
+Version 2.2.1 - JSON Storage System
+`);
   process.exit(0);
 }
 

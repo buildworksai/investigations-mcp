@@ -3,6 +3,24 @@
 ## Overview
 This document provides comprehensive examples of how to use the Investigations MCP tools for various forensic investigation scenarios. Each example demonstrates the complete workflow from problem identification to root cause analysis and reporting.
 
+## Storage System (v2.2.1)
+The Investigations MCP Tools now use a JSON-based file storage system with the following features:
+- **Location**: All data stored in `./.investigations-mcp/` directory
+- **FIFO Management**: Automatic cleanup of old investigations (max 50)
+- **Human Readable**: JSON files can be inspected manually
+- **No Database Setup**: No SQLite or database configuration required
+- **Portable**: Easy to backup, move, or version control
+- **Atomic Operations**: File-based operations are naturally atomic
+
+## ⚠️ Security Notice
+**IMPORTANT**: This software collects sensitive system data and stores it locally in JSON format without encryption. Ensure you have proper authorization to investigate target systems and follow security best practices. See the full security disclaimer in README.md and LICENSE files.
+
+### Storage Folder Management
+- **Storage Location**: All investigation data is stored in `./.investigations-mcp/` directory
+- **User Responsibility**: You are responsible for managing this folder
+- **Git Ignore**: **CRITICAL**: Add `.investigations-mcp/` to your `.gitignore` file to prevent committing sensitive data
+- **Cleanup**: Manually delete the folder when no longer needed
+
 ## Example 1: API Performance Degradation Investigation
 
 ### Scenario

@@ -1,9 +1,12 @@
 # Configuration Investigation Example
 
-This example demonstrates how to use the Investigations MCP tools to investigate configuration drift issues.
+This example demonstrates how to use the Investigations MCP tools to investigate configuration drift issues with the new JSON storage system.
 
 ## Scenario
 Application behavior changed unexpectedly. Suspected configuration drift or deployment issue.
+
+## Storage System
+This investigation uses the new JSON-based file storage system with automatic FIFO management (max 50 investigations). All data is stored in `./.investigations-mcp/` directory.
 
 ## Investigation Workflow
 
@@ -63,3 +66,10 @@ investigation_generate_report \
 - Timeline of configuration changes
 - Root cause analysis completed
 - Configuration management recommendations provided
+
+## Storage Benefits
+- **Automatic Cleanup**: Old investigations automatically removed when limit exceeded
+- **Human Readable**: JSON files can be inspected manually in `./.investigations-mcp/`
+- **No Database Setup**: No SQLite or database configuration required
+- **Portable**: Easy to backup, move, or version control
+- **Atomic Operations**: File-based operations are naturally atomic

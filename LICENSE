@@ -19,3 +19,54 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+SECURITY DISCLAIMER AND LIMITATIONS
+
+This software is designed for forensic investigations and root cause analysis.
+Users must understand and accept the following security implications:
+
+1. DATA COLLECTION AND PRIVACY:
+   - This software collects system information, logs, configurations, and
+     potentially sensitive data from target systems
+   - All investigation data is stored locally in JSON files in the
+     .investigations-mcp/ directory without encryption
+   - Users are responsible for managing the .investigations-mcp/ folder
+   - Users must add .investigations-mcp/ to their .gitignore file to prevent
+     committing sensitive investigation data to version control
+   - Users are responsible for ensuring proper data protection and privacy
+
+2. STORAGE FOLDER MANAGEMENT:
+   - The software creates and uses the .investigations-mcp/ directory for storage
+   - Users are fully responsible for managing this directory
+   - Users must add .investigations-mcp/ to .gitignore to prevent data exposure
+   - Users are responsible for cleaning up the directory when no longer needed
+   - The software does not automatically manage directory lifecycle
+
+3. SECURITY CONSIDERATIONS:
+   - The software requires system-level access to collect evidence
+   - Evidence collection may involve network requests and data transmission
+   - Users must ensure proper access controls and file permissions
+   - Data sensitivity must be carefully considered before collection
+
+4. COMPLIANCE AND LEGAL REQUIREMENTS:
+   - Users must have proper authorization to investigate target systems
+   - Compliance with applicable data protection laws (GDPR, CCPA, etc.) is required
+   - Proper chain of custody must be maintained for forensic evidence
+   - Local laws and regulations must be followed
+
+5. LIMITATIONS AND RISKS:
+   - This software is provided "as is" without security guarantees
+   - Users assume all risks associated with data collection and storage
+   - The software is intended for qualified professionals in controlled environments
+   - No warranty is provided regarding data security or protection
+
+6. PROHIBITED USES:
+   - Do not use on systems without proper authorization
+   - Do not use for illegal activities or unauthorized access
+   - Do not use in violation of applicable laws or regulations
+   - Do not use without proper security controls and safeguards
+
+By using this software, you acknowledge and accept these security implications,
+limitations, and responsibilities. The authors and copyright holders disclaim
+all liability for any security breaches, data exposure, or misuse of this
+software.
