@@ -72,6 +72,34 @@ function verifyInstallation() {
   }
 }
 
+function checkGlobalInstallation() {
+  try {
+    // Check if there's a global installation
+    const globalVersion = execSync('npm list -g buildworks-ai-investigations-mcp --depth=0', { 
+      encoding: 'utf8',
+      timeout: 5000 
+    });
+    
+    if (globalVersion.includes('buildworks-ai-investigations-mcp@')) {
+      const currentVersion = execSync('node dist/index.js --version', { 
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        timeout: 5000 
+      }).trim();
+      
+      log('\n⚠️  Global Installation Detected:', 'yellow');
+      log('   You have a global installation that may interfere with npx version resolution.', 'yellow');
+      log(`   Current package version: ${currentVersion}`, 'blue');
+      log('   To update global installation:', 'blue');
+      log('   npm install -g buildworks-ai-investigations-mcp@latest', 'green');
+      log('   Or remove global installation:', 'blue');
+      log('   npm uninstall -g buildworks-ai-investigations-mcp', 'green');
+    }
+  } catch (error) {
+    // No global installation found, which is fine
+  }
+}
+
 function showUsageInstructions() {
   log('\n🎯 Quick Start Guide:', 'bold');
   log('=' .repeat(40), 'cyan');
@@ -107,6 +135,7 @@ function main() {
   const installationOk = verifyInstallation();
   
   if (installationOk) {
+    checkGlobalInstallation();
     showUsageInstructions();
     log('\n🎉 Installation completed successfully!', 'green');
   } else {

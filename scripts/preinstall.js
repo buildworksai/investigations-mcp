@@ -71,13 +71,33 @@ function checkNodeVersion() {
   try {
     const version = process.version;
     const majorVersion = parseInt(version.slice(1).split('.')[0]);
+    const nodeModuleVersion = process.versions.modules;
+    
+    // Expected NODE_MODULE_VERSION for different Node.js versions
+    const expectedModuleVersions = {
+      16: 108,
+      18: 137,
+      20: 115,
+      22: 127
+    };
     
     if (majorVersion < 18) {
       log(`❌ Node.js version ${version} is not supported. Please upgrade to Node.js 18 or higher.`, 'red');
       return false;
     }
     
+    // Check NODE_MODULE_VERSION compatibility
+    const expectedVersion = expectedModuleVersions[majorVersion];
+    if (expectedVersion && nodeModuleVersion != expectedVersion) {
+      log(`⚠️  NODE_MODULE_VERSION mismatch detected!`, 'yellow');
+      log(`   Node.js ${version} reports NODE_MODULE_VERSION ${nodeModuleVersion}`, 'yellow');
+      log(`   Expected NODE_MODULE_VERSION for Node.js ${majorVersion}: ${expectedVersion}`, 'yellow');
+      log(`   This may cause "failed to initialize server" errors with better-sqlite3.`, 'yellow');
+      log(`   Consider reinstalling Node.js or using a different Node.js version.`, 'yellow');
+    }
+    
     log(`✅ Node.js version ${version} is supported.`, 'green');
+    log(`✅ NODE_MODULE_VERSION: ${nodeModuleVersion}`, 'green');
     return true;
   } catch (error) {
     log('⚠️  Could not determine Node.js version.', 'yellow');
@@ -101,6 +121,11 @@ function provideCacheClearingInstructions(isCorrupted = false) {
   if (isCorrupted) {
     log('\n⚠️  Installation will likely FAIL without clearing the cache first!', 'yellow');
   }
+  
+  log('\n🔧 For NODE_MODULE_VERSION issues:', 'cyan');
+  log('1. Reinstall Node.js from official source: https://nodejs.org/', 'blue');
+  log('2. Use Node Version Manager (nvm): nvm install 18 && nvm use 18', 'blue');
+  log('3. Clear all caches and reinstall: npm cache clean --force && rm -rf ~/.npm/_npx', 'blue');
   
   log('\n📖 For more help, see: https://github.com/buildworksai/investigations-mcp#troubleshooting', 'magenta');
 }

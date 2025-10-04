@@ -44,10 +44,24 @@ Investigations MCP by BuildWorks.AI is a production-grade Model Context Protocol
 
 ## Installation
 
-1. Install via npm (recommended):
+### Prerequisites
+- **Node.js**: Version 18.0.0 or higher (LTS recommended)
+- **npm**: Version 8.0.0 or higher
+- **Operating System**: macOS, Linux, or Windows
+
+### System Requirements
+- **Memory**: Minimum 512MB RAM
+- **Disk Space**: 100MB for installation
+- **Network**: Internet connection for initial installation
+
+### Install via npm (recommended)
 ```bash
-npm install -g buildworks-ai-investigations-mcp
+npm install -g buildworks-ai-investigations-mcp@latest
 ```
+
+**Important Notes:**
+- Always use `@latest` to ensure you get the most recent version and avoid npx resolution conflicts with global installations
+- If you encounter "failed to initialize server" errors, see the [Troubleshooting](#troubleshooting) section below
 
 Or clone the repository:
 ```bash
@@ -270,15 +284,47 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.25 or later
+1. **Check version**: Ensure you're using version 2.0.26 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
    rm -rf ~/.npm/_npx
    npx buildworks-ai-investigations-mcp@latest --version
    ```
-3. **Verify installation**: Test with `npx buildworks-ai-investigations-mcp@latest --version`
-4. **Check Node.js**: Ensure Node.js 18+ is installed
+3. **Verify Node.js version**: Ensure you're using Node.js 18 or higher
+   ```bash
+   node --version  # Should show v18.x.x or higher
+   ```
+4. **Check NODE_MODULE_VERSION compatibility**:
+   ```bash
+   node -p "process.versions.modules"  # Should match your Node.js version
+   ```
+5. **Fresh installation**:
+   ```bash
+   npm uninstall -g buildworks-ai-investigations-mcp
+   npm cache clean --force
+   rm -rf ~/.npm/_npx
+   npm install -g buildworks-ai-investigations-mcp@latest
+   ```
+
+#### NODE_MODULE_VERSION Mismatch Errors
+If you see errors about "NODE_MODULE_VERSION" or "was compiled against a different Node.js version":
+
+**Root Cause**: better-sqlite3 native module was compiled for a different Node.js version than what you're running.
+
+**Solutions**:
+1. **Reinstall Node.js** from official source: https://nodejs.org/
+2. **Use Node Version Manager (nvm)**:
+   ```bash
+   nvm install 18
+   nvm use 18
+   ```
+3. **Clear all caches and reinstall**:
+   ```bash
+   npm cache clean --force
+   rm -rf ~/.npm/_npx
+   npm install -g buildworks-ai-investigations-mcp@latest
+   ```
 
 #### better-sqlite3 Native Module Errors
 If you see errors mentioning `better_sqlite3.node`, `bindings.js`, or "failed to initialize server":
@@ -295,7 +341,7 @@ rm -rf ~/.npm/_npx
 npx buildworks-ai-investigations-mcp@latest --version
 ```
 
-**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.25+
+**Prevention**: The package now includes automatic detection of corrupted cache and NODE_MODULE_VERSION issues in v2.0.26+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
@@ -350,7 +396,20 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.25 (Current)
+### v2.0.26 (Current)
+- **Node.js Compatibility Fixes**: Fixed NODE_MODULE_VERSION mismatch issues with better-sqlite3.
+- **Enhanced Error Handling**: Comprehensive error messages for native module compatibility issues.
+- **Preinstall Validation**: Added NODE_MODULE_VERSION validation and Node.js version checking.
+- **better-sqlite3 Pinning**: Pinned to version 11.9.1 for maximum Node.js 18 compatibility.
+- **Engine Requirements**: Added explicit Node.js 18+ and npm 8+ requirements.
+- **Global Installation Update System**: Added comprehensive global installation update mechanisms.
+- **GitHub Actions Integration**: Automated global installation updates via CI/CD pipeline.
+- **Enhanced Post-Install Script**: Detects global installations and provides update guidance.
+- **Dedicated Update Script**: New `npm run update-global` command for easy global updates.
+- **NPX Resolution Fix**: Resolved npx version resolution conflicts with global installations.
+- **User Experience Improvements**: Clear warnings and instructions for global installation management.
+
+### v2.0.25
 - **Complete Version Consistency**: Thoroughly verified and updated all version references across entire codebase.
 - **Zero Version Mismatches**: Ensured complete consistency between package.json, source code, and documentation.
 - **Comprehensive Verification**: Performed systematic verification of all version references before publication.

@@ -7,16 +7,27 @@ import Database from 'better-sqlite3';
 import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
-import { 
-  InvestigationCase, 
-  EvidenceItem, 
-  // AnalysisResult, 
+import type {
+  InvestigationCase,
+  EvidenceItem,
+  // AnalysisResult,
   // Finding,
   // TimelineEvent,
   // CausalRelationship,
   // InvestigationReport,
   InvestigationFilters
 } from '../types/index.js';
+
+// Helper function to get expected NODE_MODULE_VERSION for Node.js versions
+function getExpectedNodeModuleVersion(nodeMajorVersion: number): number | string {
+  const expectedVersions: Record<number, number> = {
+    16: 108,
+    18: 137,
+    20: 115,
+    22: 127
+  };
+  return expectedVersions[nodeMajorVersion] || 'Unknown';
+}
 import { InvestigationError } from '../types/index.js';
 
 export class InvestigationDatabase {
@@ -82,9 +93,9 @@ export class InvestigationDatabase {
       // Now create the database connection with error handling
       try {
         this.db = new Database(this.dbPath);
-      } catch (dbError: any) {
+      } catch (dbError: unknown) {
         // If database creation fails due to native module issues, provide helpful error
-        if (dbError.message && dbError.message.includes('better_sqlite3.node')) {
+        if (dbError instanceof Error && dbError.message.includes('better_sqlite3.node')) {
           console.error('❌ Database initialization failed: better-sqlite3 native module error');
           console.error('💡 This is likely due to corrupted npx cache. Try:');
           console.error('   1. npm cache clean --force');
@@ -94,7 +105,7 @@ export class InvestigationDatabase {
         }
         throw new InvestigationError(
           'DATABASE_INIT_ERROR',
-          `Failed to initialize database at ${this.dbPath}: ${dbError.message}`
+          `Failed to initialize database at ${this.dbPath}: ${(dbError as Error).message}`
         );
       }
       // Create investigations table
@@ -277,9 +288,55 @@ export class InvestigationDatabase {
       console.log(`Database initialized successfully at: ${this.dbPath}`);
     } catch (error) {
       console.error(`Failed to initialize database at ${this.dbPath}:`, error);
+      
+      // Enhanced error handling for better-sqlite3 native module issues
+      let enhancedErrorMessage = `Failed to initialize database at ${this.dbPath}: ${error}`;
+      let errorCode = 'DATABASE_INIT_ERROR';
+      
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        // Check for NODE_MODULE_VERSION mismatch
+        if (errorMessage.includes('node_module_version') || errorMessage.includes('was compiled against a different node.js version')) {
+          enhancedErrorMessage = `NODE_MODULE_VERSION mismatch detected. This is a Node.js native module compatibility issue.
+          
+Root Cause: better-sqlite3 was compiled for a different Node.js version than what you're currently running.
+
+Solutions:
+1. Clear npm/npx cache: npm cache clean --force && rm -rf ~/.npm/_npx
+2. Reinstall Node.js from official source: https://nodejs.org/
+3. Use Node Version Manager: nvm install 18 && nvm use 18
+4. Try: npx buildworks-ai-investigations-mcp@latest --version
+
+Current Node.js: ${process.version}
+NODE_MODULE_VERSION: ${process.versions.modules}
+Expected for Node.js ${process.version.split('.')[0]}: ${getExpectedNodeModuleVersion(parseInt(process.version.split('.')[0]))}
+
+For more help: https://github.com/buildworksai/investigations-mcp#troubleshooting`;
+          errorCode = 'NODE_MODULE_VERSION_MISMATCH';
+        }
+        // Check for better-sqlite3 specific errors
+        else if (errorMessage.includes('better_sqlite3') || errorMessage.includes('better-sqlite3')) {
+          enhancedErrorMessage = `better-sqlite3 native module error detected.
+
+This is typically caused by:
+1. Corrupted npm/npx cache
+2. Node.js version incompatibility
+3. Missing native module dependencies
+
+Solutions:
+1. Clear all caches: npm cache clean --force && rm -rf ~/.npm/_npx
+2. Reinstall: npm install -g buildworks-ai-investigations-mcp@latest
+3. Check Node.js version: node --version (requires Node.js 18+)
+
+For more help: https://github.com/buildworksai/investigations-mcp#troubleshooting`;
+          errorCode = 'BETTER_SQLITE3_ERROR';
+        }
+      }
+      
       throw new InvestigationError(
-        `Failed to initialize database at ${this.dbPath}: ${error}`,
-        'DATABASE_INIT_ERROR',
+        enhancedErrorMessage,
+        errorCode,
         undefined,
         { error, dbPath: this.dbPath }
       );
@@ -323,30 +380,30 @@ export class InvestigationDatabase {
 
   async getInvestigation(id: string): Promise<InvestigationCase | null> {
     try {
-      const row: any = await this.get('SELECT * FROM investigations WHERE id = ?', [id]);
+      const row = await this.get('SELECT * FROM investigations WHERE id = ?', [id]) as Record<string, unknown> | null;
       if (!row) return null;
 
       return {
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        severity: row.severity,
-        category: row.category,
-        priority: row.priority,
-        created_at: new Date(row.created_at),
-        updated_at: new Date(row.updated_at),
-        reported_by: row.reported_by,
-        assigned_to: row.assigned_to,
-        affected_systems: JSON.parse(row.affected_systems || '[]'),
+        id: row.id as string,
+        title: row.title as string,
+        description: row.description as string,
+        status: row.status as 'active' | 'completed' | 'archived',
+        severity: row.severity as 'low' | 'medium' | 'high' | 'critical',
+        category: row.category as 'performance' | 'security' | 'reliability' | 'configuration' | 'network' | 'application',
+        priority: row.priority as 'p1' | 'p2' | 'p3' | 'p4',
+        created_at: new Date(row.created_at as string),
+        updated_at: new Date(row.updated_at as string),
+        reported_by: row.reported_by as string,
+        assigned_to: row.assigned_to as string | undefined,
+        affected_systems: JSON.parse((row.affected_systems as string) || '[]'),
         evidence: [], // Will be loaded separately if needed
         analysis: [], // Will be loaded separately if needed
         analysis_results: [], // Will be loaded separately if needed
-        findings: JSON.parse(row.findings || '[]'),
-        root_causes: JSON.parse(row.root_causes || '[]'),
-        contributing_factors: JSON.parse(row.contributing_factors || '[]'),
-        recommendations: JSON.parse(row.recommendations || '[]'),
-        metadata: JSON.parse(row.metadata || '{}')
+        findings: JSON.parse((row.findings as string) || '[]'),
+        root_causes: JSON.parse((row.root_causes as string) || '[]'),
+        contributing_factors: JSON.parse((row.contributing_factors as string) || '[]'),
+        recommendations: JSON.parse((row.recommendations as string) || '[]'),
+        metadata: JSON.parse((row.metadata as string) || '{}')
       };
     } catch (error) {
       throw new InvestigationError(
@@ -361,7 +418,7 @@ export class InvestigationDatabase {
   async listInvestigations(filters: InvestigationFilters = {}): Promise<InvestigationCase[]> {
     try {
       let query = 'SELECT * FROM investigations WHERE 1=1';
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (filters.status) {
         query += ' AND status = ?';
@@ -405,29 +462,29 @@ export class InvestigationDatabase {
         params.push(filters.offset);
       }
 
-      const rows: any[] = await this.all(query, params);
+      const rows = await this.all(query, params) as Record<string, unknown>[];
 
-      return rows.map((row: any) => ({
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        severity: row.severity,
-        category: row.category,
-        priority: row.priority,
-        created_at: new Date(row.created_at),
-        updated_at: new Date(row.updated_at),
-        reported_by: row.reported_by,
-        assigned_to: row.assigned_to,
-        affected_systems: JSON.parse(row.affected_systems || '[]'),
+      return rows.map((row) => ({
+        id: row.id as string,
+        title: row.title as string,
+        description: row.description as string,
+        status: row.status as 'active' | 'completed' | 'archived',
+        severity: row.severity as 'low' | 'medium' | 'high' | 'critical',
+        category: row.category as 'performance' | 'security' | 'reliability' | 'configuration' | 'network' | 'application',
+        priority: row.priority as 'p1' | 'p2' | 'p3' | 'p4',
+        created_at: new Date(row.created_at as string),
+        updated_at: new Date(row.updated_at as string),
+        reported_by: row.reported_by as string,
+        assigned_to: row.assigned_to as string | undefined,
+        affected_systems: JSON.parse((row.affected_systems as string) || '[]'),
         evidence: [],
         analysis: [],
         analysis_results: [],
         findings: [],
-        root_causes: JSON.parse(row.root_causes || '[]'),
-        contributing_factors: JSON.parse(row.contributing_factors || '[]'),
-        recommendations: JSON.parse(row.recommendations || '[]'),
-        metadata: JSON.parse(row.metadata || '{}')
+        root_causes: JSON.parse((row.root_causes as string) || '[]'),
+        contributing_factors: JSON.parse((row.contributing_factors as string) || '[]'),
+        recommendations: JSON.parse((row.recommendations as string) || '[]'),
+        metadata: JSON.parse((row.metadata as string) || '{}')
       }));
     } catch (error) {
       throw new InvestigationError(
@@ -471,22 +528,22 @@ export class InvestigationDatabase {
 
   async getEvidence(investigationId: string): Promise<EvidenceItem[]> {
     try {
-      const rows: any[] = await this.all(
+      const rows = await this.all(
         'SELECT * FROM evidence WHERE investigation_id = ? ORDER BY created_at ASC',
         [investigationId]
-      );
+      ) as Record<string, unknown>[];
 
-      return rows.map((row: any) => ({
-        id: row.id,
-        investigation_id: row.investigation_id,
-        type: row.type,
-        source: row.source,
-        path: row.path,
-        content: JSON.parse(row.content),
-        metadata: JSON.parse(row.metadata),
-        chain_of_custody: JSON.parse(row.chain_of_custody || '[]'),
-        tags: JSON.parse(row.tags || '[]'),
-        created_at: new Date(row.created_at)
+      return rows.map((row) => ({
+        id: row.id as string,
+        investigation_id: row.investigation_id as string,
+        type: row.type as 'security' | 'network' | 'log' | 'config' | 'metric' | 'process' | 'filesystem' | 'database' | 'infrastructure' | 'container' | 'cloud' | 'monitoring',
+        source: row.source as string,
+        path: row.path as string | undefined,
+        content: JSON.parse(row.content as string),
+        metadata: JSON.parse(row.metadata as string),
+        chain_of_custody: JSON.parse((row.chain_of_custody as string) || '[]'),
+        tags: JSON.parse((row.tags as string) || '[]'),
+        created_at: new Date(row.created_at as string)
       }));
     } catch (error) {
       throw new InvestigationError(
@@ -501,7 +558,7 @@ export class InvestigationDatabase {
   async updateInvestigation(id: string, updates: Partial<InvestigationCase>): Promise<void> {
     try {
       const setClauses: string[] = [];
-      const params: any[] = [];
+      const params: unknown[] = [];
 
       if (updates.title !== undefined) {
         setClauses.push('title = ?');
@@ -588,7 +645,7 @@ export class InvestigationDatabase {
   }
 
   // Helper methods for database operations
-  private run(sql: string, params: any[] = []): Promise<void> {
+  private run(sql: string, params: unknown[] = []): Promise<void> {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }
@@ -600,7 +657,7 @@ export class InvestigationDatabase {
     }
   }
 
-  private get(sql: string, params: any[] = []): Promise<any> {
+  private get(sql: string, params: unknown[] = []): Promise<unknown> {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }
@@ -612,7 +669,7 @@ export class InvestigationDatabase {
     }
   }
 
-  private all(sql: string, params: any[] = []): Promise<any[]> {
+  private all(sql: string, params: unknown[] = []): Promise<unknown[]> {
     if (!this.db) {
       throw new InvestigationError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
     }

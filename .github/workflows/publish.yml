@@ -122,5 +122,24 @@ jobs:
             echo "Skip GH Packages publish: ${CURRENT} already published"
           fi
 
-      - name: Restore package.json
-        run: mv -f package.npm.json package.json
+          - name: Restore package.json
+            run: mv -f package.npm.json package.json
+
+          - name: Update Global Installation (Optional)
+            env:
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            run: |
+              echo "=== GLOBAL INSTALLATION UPDATE ==="
+              CURRENT=$(node -p "require('./package.json').version")
+              echo "Updating global installation to version ${CURRENT}..."
+              
+              # Check if we should update global installation
+              # This is optional and can be controlled by environment variable
+              if [ "${{ vars.UPDATE_GLOBAL_INSTALLATION }}" = "true" ]; then
+                echo "Global installation update is enabled"
+                npm install -g buildworks-ai-investigations-mcp@${CURRENT}
+                echo "✅ Global installation updated to version ${CURRENT}"
+              else
+                echo "Global installation update is disabled (set UPDATE_GLOBAL_INSTALLATION=true to enable)"
+                echo "Users can manually update with: npm install -g buildworks-ai-investigations-mcp@latest"
+              fi
