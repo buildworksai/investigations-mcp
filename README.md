@@ -270,7 +270,7 @@ If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.0.20 or later
+1. **Check version**: Ensure you're using version 2.0.22 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
@@ -295,7 +295,7 @@ rm -rf ~/.npm/_npx
 npx buildworks-ai-investigations-mcp@latest --version
 ```
 
-**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.20+
+**Prevention**: The package now includes automatic detection of corrupted cache in v2.0.22+
 
 #### "No tools" in MCP Client
 If your MCP client shows "No tools, prompts, or resources":
@@ -350,7 +350,13 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.21 (Current)
+### v2.0.22 (Current)
+- **Package Lock Fix**: Regenerated package-lock.json with fresh dependencies to resolve build cache issues.
+- **Version Consistency**: Ensured all version references are consistent across the codebase.
+- **IDE Compatibility**: Resolved MCP server red status issue in IDEs.
+- **Build Integrity**: Fixed GitHub Actions build process to use correct source code.
+
+### v2.0.21
 - **Build Cache Fix**: Fixed GitHub Actions build cache issue that caused version mismatch in published package.
 - **Version Consistency**: Ensured published package content matches version metadata.
 - **IDE Compatibility**: Resolved MCP server red status issue in IDEs.
