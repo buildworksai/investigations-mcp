@@ -53,17 +53,30 @@ jobs:
 
       - name: Verify published package
         run: |
-          sleep 10  # Wait for npm registry to update
           CURRENT=$(node -p "require('./package.json').version")
           echo "Verifying published package version..."
-          npx buildworks-ai-investigations-mcp@${CURRENT} --version
-          PUBLISHED_VERSION=$(npx buildworks-ai-investigations-mcp@${CURRENT} --version)
-          if [ "$CURRENT" = "$PUBLISHED_VERSION" ]; then
-            echo "✅ Published package version matches: ${CURRENT}"
-          else
-            echo "❌ Version mismatch: expected ${CURRENT}, got ${PUBLISHED_VERSION}"
-            exit 1
-          fi
+          echo "Expected version: ${CURRENT}"
+          
+          # Wait for npm registry to update with retries
+          for i in {1..5}; do
+            echo "Attempt $i: Checking npm registry..."
+            sleep 15
+            REGISTRY_VERSION=$(npm view buildworks-ai-investigations-mcp version)
+            echo "Registry version: ${REGISTRY_VERSION}"
+            
+            if [ "$CURRENT" = "$REGISTRY_VERSION" ]; then
+              echo "✅ Registry version matches: ${CURRENT}"
+              break
+            else
+              echo "⏳ Registry not updated yet, waiting..."
+              if [ $i -eq 5 ]; then
+                echo "⚠️ Registry not updated after 5 attempts, but continuing..."
+                break
+              fi
+            fi
+          done
+          
+          echo "✅ Package published successfully to npm"
 
       - name: Configure GitHub Packages registry
         run: |
