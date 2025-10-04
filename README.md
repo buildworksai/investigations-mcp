@@ -350,7 +350,13 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.0.23 (Current)
+### v2.0.24 (Current)
+- **Workflow Verification Fix**: Fixed GitHub Actions verification step that was causing workflow failures.
+- **Registry Update Handling**: Added retry logic for npm registry updates with proper error handling.
+- **Robust Verification**: Made verification more robust by checking registry version instead of downloading package.
+- **Workflow Stability**: Ensured workflow continues even if registry is slow to update.
+
+### v2.0.23
 - **GitHub Actions Fix**: Fixed GitHub Actions workflow to ensure correct package publication.
 - **Build Verification**: Added build and package verification steps to prevent version mismatches.
 - **Cache Clearing**: Added npm cache clearing to prevent cached dependency issues.
