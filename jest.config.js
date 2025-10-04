@@ -17,9 +17,7 @@ export default {
     '**/__tests__/**/*.test.ts'
   ],
   testPathIgnorePatterns: [
-    '/node_modules/',
-    '/src/__tests__/analysis-engine.test.ts',
-    '/src/__tests__/evidence-collector.test.ts'
+    '/node_modules/'
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

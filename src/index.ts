@@ -530,20 +530,11 @@ if (process.argv.includes('--version')) {
 }
 
 if (process.argv.includes('--config')) {
-  try {
-    const { EnvironmentConfigManager } = await import('./config/environment.js');
-    const configManager = EnvironmentConfigManager.getInstance();
-    const config = configManager.getConfig();
-    
-    console.log(JSON.stringify(config, null, 2));
-    process.exit(0);
-  } catch (error) {
-    console.log(JSON.stringify({
-      error: 'Configuration module not available',
-      message: error instanceof Error ? error.message : String(error)
-    }, null, 2));
-    process.exit(1);
-  }
+  console.log(JSON.stringify({
+    error: 'Configuration module not available',
+    message: 'Environment configuration has been removed for production release'
+  }, null, 2));
+  process.exit(1);
 }
 
 if (process.argv.includes('--health')) {
@@ -669,9 +660,8 @@ FEATURES:
      • Size limits and quotas
 
   ⚡ Performance & Reliability
-     • Configurable concurrent operations
-     • Retry logic with exponential backoff
-     • Timeout protection
+     • Optimized JSON storage operations
+     • FIFO-based cleanup system
      • Graceful error handling
      • Resource usage monitoring
 
@@ -690,19 +680,7 @@ MCP TOOLS:
 ENVIRONMENT VARIABLES:
   INVESTIGATIONS_STORAGE_PATH      Storage directory (default: ./.investigations-mcp)
   INVESTIGATIONS_MAX_COUNT         Max investigations (default: 50)
-  INVESTIGATIONS_MAX_FILE_SIZE     Max file size in bytes (default: 104857600)
-  INVESTIGATIONS_ENABLE_VALIDATION Enable input validation (default: true)
-  INVESTIGATIONS_ENABLE_SECURITY   Enable security scanning (default: true)
-  INVESTIGATIONS_MAX_CONCURRENT    Max concurrent operations (default: 5)
-  INVESTIGATIONS_OPERATION_TIMEOUT Operation timeout in ms (default: 30000)
-  INVESTIGATIONS_RETRY_ATTEMPTS    Retry attempts (default: 3)
-  INVESTIGATIONS_LOG_LEVEL         Log level: debug|info|warn|error (default: info)
-  INVESTIGATIONS_ENABLE_AUDIT      Enable audit logging (default: true)
-  INVESTIGATIONS_ENABLE_API        Enable API integration (default: true)
-  INVESTIGATIONS_API_TIMEOUT       API timeout in ms (default: 10000)
-  INVESTIGATIONS_API_RETRIES       API retry attempts (default: 3)
   NODE_ENV                         Environment: development|production (default: development)
-  INVESTIGATIONS_DEBUG             Enable debug mode (default: false)
 
 STORAGE:
   All investigation data is stored in JSON format in the .investigations-mcp/ directory:
