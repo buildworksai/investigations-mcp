@@ -251,16 +251,21 @@ class StressTester {
         const analysis: AnalysisResult = {
           id: uuidv4(),
           investigation_id: investigationId,
-          analysis_type: this.getRandomAnalysisType(),
-          results: this.generateHeavyAnalysisResults(),
-          confidence_score: Math.random(),
-          methodology: this.generateHeavyMethodology(),
-          findings: this.generateHeavyFindings(),
+          // Map to current AnalysisResult shape
+          type: this.getRandomAnalysisType() as any,
+          hypothesis: undefined,
+          confidence: Math.random(),
+          evidence_supporting: [],
+          evidence_contradicting: [],
+          conclusions: [this.generateHeavyDescription().slice(0, 200)],
           recommendations: this.generateHeavyRecommendations(),
-          created_at: new Date()
+          methodology: this.generateHeavyMethodology(),
+          limitations: [],
+          created_at: new Date(),
+          updated_at: new Date()
         };
 
-        await this.database.addAnalysis(analysis);
+        await this.database.addAnalysisResult(analysis as any);
         this.metrics.analysisCreated++;
 
       } catch (error) {
@@ -331,7 +336,12 @@ class StressTester {
     for (const term of searchTerms) {
       try {
         const startTime = performance.now();
-        const results = await this.database.searchInvestigations({ query: term });
+        // Fallback: list then client-side filter by title/metadata
+        const all = await this.database.listInvestigations();
+        const results = all.filter(inv =>
+          inv.title.toLowerCase().includes(term) ||
+          JSON.stringify(inv.metadata).toLowerCase().includes(term)
+        );
         const duration = performance.now() - startTime;
         
         console.log(`✅ Search for "${term}" returned ${results.length} results in ${duration.toFixed(2)}ms`);
@@ -364,14 +374,14 @@ class StressTester {
         const investigation = investigations[i];
         const startTime = performance.now();
         
-        investigation.updated_at = new Date();
-        investigation.metadata = {
-          ...investigation.metadata,
-          lastUpdated: new Date().toISOString(),
-          stressTestUpdate: true
-        };
-        
-        await this.database.updateInvestigation(investigation);
+        await this.database.updateInvestigation(investigation.id, {
+          updated_at: new Date(),
+          metadata: {
+            ...investigation.metadata,
+            lastUpdated: new Date().toISOString(),
+            stressTestUpdate: true
+          }
+        });
         const duration = performance.now() - startTime;
         
         if (duration > 2000) {
@@ -404,7 +414,8 @@ class StressTester {
         const investigation = investigations[i];
         const startTime = performance.now();
         
-        await this.database.deleteInvestigation(investigation.id);
+        // No delete API; mark as archived to simulate removal
+        await this.database.updateInvestigation(investigation.id, { status: 'archived' as any });
         const duration = performance.now() - startTime;
         
         if (duration > 3000) {

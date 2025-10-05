@@ -6,12 +6,13 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs-extra';
+import { EnvironmentConfigManager } from '../config/environment.js';
 
 export interface LogContext {
   investigationId?: string;
   userId?: string;
   operation?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class Logger {
@@ -30,18 +31,31 @@ export class Logger {
   }
 
   private createLogger(): winston.Logger {
-    const logDir = process.env.INVESTIGATIONS_LOG_DIR || './logs';
-    const logLevel = process.env.INVESTIGATIONS_LOG_LEVEL || 'info';
-    
-    // Ensure log directory exists
-    fs.ensureDirSync(logDir);
+    const config = (() => {
+      try {
+        return EnvironmentConfigManager.getInstance();
+      } catch {
+        // If env config is unavailable during early import, fall back to env/defaults
+        return undefined;
+      }
+    })();
+
+    const configuredLogDir = process.env.INVESTIGATIONS_LOG_DIR 
+      || (config?.getLogDir?.() as string | undefined)
+      || (config ? path.join(config.getStoragePath(), 'logs') : './logs');
+
+    const logDir = path.isAbsolute(configuredLogDir)
+      ? configuredLogDir
+      : path.resolve(process.cwd(), configuredLogDir);
+
+    const logLevel = process.env.INVESTIGATIONS_LOG_LEVEL || (config?.getLogLevel?.() as string) || 'info';
 
     const logFormat = winston.format.combine(
       winston.format.timestamp(),
       winston.format.errors({ stack: true }),
       winston.format.json(),
       winston.format.printf(({ timestamp, level, message, investigationId, userId, operation, metadata, stack, ...rest }) => {
-        const logEntry = {
+        const logEntry: Record<string, unknown> = {
           timestamp,
           level,
           message,
@@ -53,7 +67,7 @@ export class Logger {
         };
 
         if (stack) {
-          (logEntry as any).stack = stack;
+          (logEntry as Record<string, unknown>).stack = stack;
         }
 
         return JSON.stringify(logEntry);
@@ -76,32 +90,40 @@ export class Logger {
       })
     ];
 
-    // File transports for production
+    // File transports for production only; ensure directory lazily with fallback
     if (process.env.NODE_ENV === 'production') {
-      transports.push(
-        // Error log file
-        new winston.transports.File({
-          filename: path.join(logDir, 'error.log'),
-          level: 'error',
-          format: logFormat,
-          maxsize: 10 * 1024 * 1024, // 10MB
-          maxFiles: 5
-        }),
-        // Combined log file
-        new winston.transports.File({
-          filename: path.join(logDir, 'combined.log'),
-          format: logFormat,
-          maxsize: 10 * 1024 * 1024, // 10MB
-          maxFiles: 5
-        }),
-        // Investigation-specific log file
-        new winston.transports.File({
-          filename: path.join(logDir, 'investigations.log'),
-          format: logFormat,
-          maxsize: 10 * 1024 * 1024, // 10MB
-          maxFiles: 10
-        })
-      );
+      try {
+        fs.ensureDirSync(logDir);
+
+        transports.push(
+          // Error log file
+          new winston.transports.File({
+            filename: path.join(logDir, 'error.log'),
+            level: 'error',
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 5
+          }),
+          // Combined log file
+          new winston.transports.File({
+            filename: path.join(logDir, 'combined.log'),
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 5
+          }),
+          // Investigation-specific log file
+          new winston.transports.File({
+            filename: path.join(logDir, 'investigations.log'),
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 10
+          })
+        );
+      } catch (e) {
+        // Fall back to console-only if file system is not writable/available
+        // Intentionally avoid throwing here to prevent server init failures
+        console.error(`Logger: failed to initialize file transports at ${logDir}: ${e instanceof Error ? e.message : String(e)}. Falling back to console-only.`);
+      }
     }
 
     return winston.createLogger({
@@ -137,7 +159,7 @@ export class Logger {
   }
 
   // Investigation-specific logging methods
-  investigationStart(investigationId: string, userId: string, metadata?: Record<string, any>): void {
+  investigationStart(investigationId: string, userId: string, metadata?: Record<string, unknown>): void {
     this.info('Investigation started', {
       investigationId,
       userId,
@@ -146,7 +168,7 @@ export class Logger {
     });
   }
 
-  investigationComplete(investigationId: string, userId: string, metadata?: Record<string, any>): void {
+  investigationComplete(investigationId: string, userId: string, metadata?: Record<string, unknown>): void {
     this.info('Investigation completed', {
       investigationId,
       userId,
@@ -164,7 +186,7 @@ export class Logger {
     });
   }
 
-  analysisPerformed(investigationId: string, analysisType: string, userId: string, metadata?: Record<string, any>): void {
+  analysisPerformed(investigationId: string, analysisType: string, userId: string, metadata?: Record<string, unknown>): void {
     this.info(`Analysis performed: ${analysisType}`, {
       investigationId,
       userId,
@@ -173,7 +195,7 @@ export class Logger {
     });
   }
 
-  reportGenerated(investigationId: string, reportType: string, userId: string, metadata?: Record<string, any>): void {
+  reportGenerated(investigationId: string, reportType: string, userId: string, metadata?: Record<string, unknown>): void {
     this.info(`Report generated: ${reportType}`, {
       investigationId,
       userId,
@@ -183,7 +205,7 @@ export class Logger {
   }
 
   // Security and audit logging
-  securityEvent(event: string, userId?: string, investigationId?: string, metadata?: Record<string, any>): void {
+  securityEvent(event: string, userId?: string, investigationId?: string, metadata?: Record<string, unknown>): void {
     this.warn(`Security event: ${event}`, {
       investigationId,
       userId,
@@ -192,7 +214,7 @@ export class Logger {
     });
   }
 
-  auditLog(action: string, userId: string, investigationId?: string, metadata?: Record<string, any>): void {
+  auditLog(action: string, userId: string, investigationId?: string, metadata?: Record<string, unknown>): void {
     this.info(`Audit: ${action}`, {
       investigationId,
       userId,
@@ -202,7 +224,7 @@ export class Logger {
   }
 
   // Performance logging
-  performanceMetric(metric: string, value: number, investigationId?: string, metadata?: Record<string, any>): void {
+  performanceMetric(metric: string, value: number, investigationId?: string, metadata?: Record<string, unknown>): void {
     this.info(`Performance: ${metric} = ${value}`, {
       investigationId,
       operation: 'performance_metric',
@@ -211,7 +233,7 @@ export class Logger {
   }
 
   // System health logging
-  systemHealth(status: 'healthy' | 'degraded' | 'unhealthy', details?: Record<string, any>): void {
+  systemHealth(status: 'healthy' | 'degraded' | 'unhealthy', details?: Record<string, unknown>): void {
     const level = status === 'healthy' ? 'info' : status === 'degraded' ? 'warn' : 'error';
     this.logger.log(level, `System health: ${status}`, {
       operation: 'system_health',

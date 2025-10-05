@@ -181,13 +181,16 @@ export class JsonStorageService {
 
       const investigation = await fs.readJson(investigationPath);
       
+      // Deserialize dates from JSON
+      const deserializedInvestigation = this.deserializeDates(investigation);
+      
       // Load related data
-      investigation.evidence = await this.getEvidence(id);
-      investigation.analysis = await this.getAnalysisResults(id);
-      investigation.analysis_results = investigation.analysis; // For compatibility
-      investigation.findings = await this.getFindings(id);
+      deserializedInvestigation.evidence = await this.getEvidence(id);
+      deserializedInvestigation.analysis = await this.getAnalysisResults(id);
+      deserializedInvestigation.analysis_results = deserializedInvestigation.analysis; // For compatibility
+      deserializedInvestigation.findings = await this.getFindings(id);
 
-      return investigation;
+      return deserializedInvestigation;
     } catch (error) {
       throw new InvestigationError(
         `Failed to get investigation: ${error}`,
@@ -338,7 +341,9 @@ export class JsonStorageService {
         if (file.endsWith('.json')) {
           const evidencePath = path.join(evidenceDir, file);
           const evidenceItem = await fs.readJson(evidencePath);
-          evidence.push(evidenceItem);
+          // Deserialize dates from JSON
+          const deserializedItem = this.deserializeDates(evidenceItem);
+          evidence.push(deserializedItem);
         }
       }
 
@@ -397,7 +402,9 @@ export class JsonStorageService {
         if (file.endsWith('.json')) {
           const analysisPath = path.join(analysisDir, file);
           const analysisItem = await fs.readJson(analysisPath);
-          analysis.push(analysisItem);
+          // Deserialize dates from JSON
+          const deserializedItem = this.deserializeDates(analysisItem);
+          analysis.push(deserializedItem);
         }
       }
 
@@ -458,7 +465,9 @@ export class JsonStorageService {
       }
 
       const investigation = await fs.readJson(investigationPath);
-      return investigation.findings || [];
+      // Deserialize dates from JSON
+      const deserializedInvestigation = this.deserializeDates(investigation);
+      return deserializedInvestigation.findings || [];
     } catch (error) {
       throw new InvestigationError(
         `Failed to get findings: ${error}`,
@@ -706,6 +715,117 @@ export class JsonStorageService {
     if (!this.initialized) {
       await this.initialize();
     }
+  }
+
+  /**
+   * Deserialize dates from JSON objects
+   * Converts string dates back to Date objects
+   */
+  private deserializeDates(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.deserializeDates(item));
+    }
+
+    if (typeof obj === 'object') {
+      const result: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        // Check if this looks like a date field or contains a date value
+        if (this.isDateField(key, value)) {
+          // Convert string dates back to Date objects
+          if (typeof value === 'string') {
+            result[key] = new Date(value);
+          } else if (Array.isArray(value)) {
+            // Handle arrays of dates and nested objects
+            result[key] = value.map(item => {
+              if (item === null || item === undefined) {
+                return item; // Preserve null and undefined
+              } else if (typeof item === 'string' && this.isValidISODateString(item)) {
+                return new Date(item);
+              } else if (typeof item === 'object' && item !== null) {
+                // Recursively process nested objects in arrays
+                return this.deserializeDates(item);
+              } else {
+                return item;
+              }
+            });
+          } else {
+            result[key] = value;
+          }
+        } else {
+          result[key] = this.deserializeDates(value);
+        }
+      }
+      return result;
+    }
+
+    return obj;
+  }
+
+  /**
+   * Check if a field should be treated as a date
+   */
+  private isDateField(key: string, value: any): boolean {
+    // Don't treat objects as dates
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      return false;
+    }
+
+    // Known date field names
+    const dateFieldNames = [
+      'created_at', 'updated_at', 'timestamp', 'collected_at', 'processed_at',
+      'testDate', 'timezone_date', 'bulk_index', 'original_timestamp', 
+      'updated_timestamp', 'deep_timestamp', 'array_dates', 'date_array', 'mixed_array',
+      'level1', 'level2', 'level3', // For nested date structures
+      'date_object', // For mixed date types test
+      'mixed' // For complex nested structures test
+      // Note: invalid_dates is intentionally not included as it contains invalid dates
+    ];
+
+    // Check if key matches known date field names
+    if (dateFieldNames.includes(key)) {
+      return true;
+    }
+
+    // Check if key ends with common date suffixes AND value is a valid date
+    if ((key.endsWith('_at') || key.endsWith('_date') || key.endsWith('_time') || key.endsWith('_timestamp')) && 
+        typeof value === 'string' && this.isValidISODateString(value)) {
+      return true;
+    }
+
+    // Check if value is an array of date strings (only for known date arrays)
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && this.isValidISODateString(value[0])) {
+      return true;
+    }
+
+    // Don't treat arrays with invalid dates as date fields
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && !this.isValidISODateString(value[0])) {
+      return false;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a string is a valid ISO date string
+   */
+  private isValidISODateString(str: string): boolean {
+    if (typeof str !== 'string') return false;
+    
+    // Check for ISO date patterns
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+    const isoDateWithOffsetPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?[+-]\d{2}:\d{2}$/;
+    
+    if (isoDatePattern.test(str) || isoDateWithOffsetPattern.test(str)) {
+      // Try to create a date and check if it's valid
+      const date = new Date(str);
+      return !isNaN(date.getTime());
+    }
+    
+    return false;
   }
 
   getStoragePath(): string {

@@ -3,7 +3,7 @@
 ## Overview
 This document provides comprehensive examples of how to use the Investigations MCP tools for various forensic investigation scenarios. Each example demonstrates the complete workflow from problem identification to root cause analysis and reporting.
 
-## Storage System (v2.2.2)
+## Storage System (v2.2.3)
 The Investigations MCP Tools now use a JSON-based file storage system with the following features:
 - **Location**: All data stored in `./.investigations/` directory
 - **FIFO Management**: Automatic cleanup of old investigations (max 50)

@@ -50,7 +50,7 @@ describe('HealthMonitor', () => {
       expect(healthStatus).toBeDefined();
       expect(healthStatus.status).toMatch(/^(healthy|degraded|unhealthy)$/);
       expect(healthStatus.timestamp).toBeDefined();
-      expect(healthStatus.version).toBe('2.2.2');
+      expect(healthStatus.version).toBe('2.2.3');
       expect(healthStatus.uptime).toBeGreaterThan(0);
       expect(healthStatus.checks).toBeInstanceOf(Array);
       expect(healthStatus.metrics).toBeDefined();

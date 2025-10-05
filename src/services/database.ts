@@ -18,9 +18,9 @@ export class InvestigationDatabase {
   private storage: JsonStorageService;
   private initialized: boolean = false;
 
-  constructor(storagePath?: string) {
+  constructor(storagePath?: string, maxInvestigations?: number) {
     // Initialize JSON storage service
-    this.storage = new JsonStorageService(storagePath);
+    this.storage = new JsonStorageService(storagePath, maxInvestigations);
   }
 
   async initialize(): Promise<void> {

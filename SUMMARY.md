@@ -1,4 +1,4 @@
-# Investigations MCP Tools - Project Summary (v2.2.2)
+# Investigations MCP Tools - Project Summary (v2.2.3)
 
 ## What We've Built
 
@@ -8,12 +8,12 @@ I've designed and implemented a comprehensive MCP (Model Context Protocol) tool 
 
 ### 🏗️ **Complete Architecture**
 - **MCP Server**: Full implementation with 10 core investigation tools
-- **Storage Layer**: JSON-based file storage with FIFO management and indexing (v2.2.2)
+- **Storage Layer**: JSON-based file storage with FIFO management and indexing (v2.2.3)
 - **Evidence Collection**: Multi-source evidence gathering with chain of custody
 - **Analysis Engine**: Systematic analysis using multiple methodologies
 - **Report Generation**: Multi-format reports (JSON, Markdown, HTML, PDF)
 
-### 🆕 **v2.2.2 Enhancements**
+### 🆕 **v2.2.3 Enhancements**
 - **Complete JSON Storage Migration**: Full migration from SQLite to JSON-based file storage
 - **Automatic FIFO Management**: Old investigations automatically cleaned up (max 50)
 - **Enhanced Performance**: Eliminated native module dependencies

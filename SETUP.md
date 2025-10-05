@@ -1,4 +1,4 @@
-# Investigations MCP Tools - Setup Guide (v2.2.2)
+# Investigations MCP Tools - Setup Guide (v2.2.3)
 
 ## Quick Start
 
@@ -7,7 +7,7 @@
 - npm or yarn package manager
 - Docker (optional, for containerized deployment)
 
-### What's New in v2.2.2
+### What's New in v2.2.3
 - **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage
 - **Automatic FIFO Management**: Old investigations automatically cleaned up (max 50)
 - **No Database Setup**: No SQLite or database configuration required

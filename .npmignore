@@ -6,8 +6,6 @@ tsconfig.json
 # Development files
 eslint.config.js
 .gitignore
-docker-compose*.yml
-Dockerfile*
 scripts/
 
 # Test files
@@ -26,6 +24,8 @@ data/
 reports/
 *.db
 *.log
+logs/
+stress-test-report.json
 
 # Node modules
 node_modules/

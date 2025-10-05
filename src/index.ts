@@ -38,7 +38,7 @@ class InvestigationMCPServer {
             this.server = new Server(
               {
                 name: 'Investigations MCP by BuildWorks.AI',
-                version: '2.2.2',
+                version: '2.2.3',
               },
           {
             capabilities: {
@@ -525,7 +525,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.2.2');
+  console.log('2.2.3');
   process.exit(0);
 }
 
@@ -557,7 +557,7 @@ if (process.argv.includes('--health')) {
   } catch (error) {
     console.log(JSON.stringify({
       status: 'unhealthy',
-      version: '2.2.2',
+      version: '2.2.3',
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error)
     }, null, 2));
@@ -599,7 +599,7 @@ if (process.argv.includes('--storage-info')) {
 
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   console.log(`
-🔍 Investigations MCP Tools v2.2.2
+🔍 Investigations MCP Tools v2.2.3
 BuildWorks.AI - Forensic Investigation & Root Cause Analysis
 
 USAGE:
@@ -733,7 +733,7 @@ SUPPORT:
   • Documentation: https://github.com/buildworks-ai/investigations-mcp#readme
 
 BuildWorks.AI - Professional Investigation Tools
-Version 2.2.2 - JSON Storage System
+Version 2.2.3 - JSON Storage System
 `);
   process.exit(0);
 }
