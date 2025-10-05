@@ -67,7 +67,7 @@ export class EnvironmentConfigManager {
   private createValidationSchema(): Joi.ObjectSchema {
     return Joi.object({
       // Storage configuration
-      storagePath: Joi.string().min(1).max(500).default('./.investigations-mcp'),
+      storagePath: Joi.string().min(1).max(500).default('./.investigations'),
       maxInvestigations: Joi.number().integer().min(1).max(1000).default(50),
       maxFileSize: Joi.number().integer().min(1024).max(1024 * 1024 * 1024).default(100 * 1024 * 1024), // 100MB
       

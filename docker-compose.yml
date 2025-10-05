@@ -1,20 +1,20 @@
-# Investigations MCP Tools v2.2.1 - Docker Compose Configuration
+# Investigations MCP Tools v2.2.2 - Docker Compose Configuration
 version: '3.8'
 
 services:
-  investigations-mcp:
+  investigations:
     build: .
-    container_name: investigations-mcp-v2.2.1
+    container_name: investigations-v2.2.2
     stdin_open: true
     tty: true
     volumes:
       # JSON storage directory with FIFO management
-      - ./.investigations-mcp:/app/.investigations-mcp
+      - ./.investigations:/app/.investigations
       # Reports output directory
       - ./reports:/app/reports
     environment:
       - NODE_ENV=production
-      - VERSION=2.2.1
+      - VERSION=2.2.2
     networks:
       - mcp-network
 

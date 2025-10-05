@@ -6,7 +6,7 @@ This example demonstrates how to use the Investigations MCP tools to investigate
 An API service is experiencing intermittent performance issues with response times spiking from 100ms to 5+ seconds.
 
 ## Storage System
-This investigation uses the new JSON-based file storage system with automatic FIFO management (max 50 investigations). All data is stored in `./.investigations-mcp/` directory.
+This investigation uses the new JSON-based file storage system with automatic FIFO management (max 50 investigations). All data is stored in `./.investigations/` directory.
 
 ## Investigation Workflow
 
@@ -91,7 +91,7 @@ investigation_generate_report \
 
 ## Storage Benefits
 - **Automatic Cleanup**: Old investigations automatically removed when limit exceeded
-- **Human Readable**: JSON files can be inspected manually in `./.investigations-mcp/`
+- **Human Readable**: JSON files can be inspected manually in `./.investigations/`
 - **No Database Setup**: No SQLite or database configuration required
 - **Portable**: Easy to backup, move, or version control
 - **Atomic Operations**: File-based operations are naturally atomic

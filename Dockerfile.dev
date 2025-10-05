@@ -1,4 +1,4 @@
-# Investigations MCP Tools v2.2.1 - Development Dockerfile
+# Investigations MCP Tools v2.2.2 - Development Dockerfile
 FROM node:18-alpine
 
 # Set working directory
@@ -15,7 +15,7 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S mcp -u 1001
 
 # Create storage directory for JSON files
-RUN mkdir -p /app/.investigations-mcp
+RUN mkdir -p /app/.investigations
 
 # Change ownership of the app directory
 RUN chown -R mcp:nodejs /app

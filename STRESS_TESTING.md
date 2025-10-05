@@ -51,7 +51,7 @@ Runs the simple stress test using the built JavaScript version with increased me
 ### Environment Variables
 ```bash
 export NODE_ENV=test
-export INVESTIGATIONS_STORAGE_PATH="./.investigations-mcp-stress-test"
+export INVESTIGATIONS_STORAGE_PATH="./.investigations-stress-test"
 export INVESTIGATIONS_MAX_COUNT=100
 export INVESTIGATIONS_LOG_LEVEL=info
 export INVESTIGATIONS_ENABLE_VALIDATION=true
@@ -161,7 +161,7 @@ node --max-old-space-size=4096 scripts/simple-stress-test.ts
 df -h
 
 # Clean up old test data
-rm -rf ./.investigations-mcp-stress-test
+rm -rf ./.investigations-stress-test
 ```
 
 #### 3. Permission Issues

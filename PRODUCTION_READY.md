@@ -1,4 +1,4 @@
-# 🚀 Production Ready - Investigations MCP v2.2.1
+# 🚀 Production Ready - Investigations MCP v2.2.2
 
 ## ✅ **PRODUCTION READINESS CHECKLIST**
 
@@ -58,7 +58,7 @@
 
 ```bash
 # Storage Configuration
-INVESTIGATIONS_STORAGE_PATH=./.investigations-mcp
+INVESTIGATIONS_STORAGE_PATH=./.investigations
 INVESTIGATIONS_MAX_COUNT=50
 INVESTIGATIONS_MAX_FILE_SIZE=104857600
 
@@ -90,17 +90,17 @@ INVESTIGATIONS_DEBUG=false
 
 ```bash
 # Build production image
-docker build -t investigations-mcp:2.2.1 .
+docker build -t investigations:2.2.2 .
 
 # Run with production configuration
 docker run -d \
-  --name investigations-mcp \
+  --name investigations \
   -e NODE_ENV=production \
   -e INVESTIGATIONS_LOG_LEVEL=warn \
   -e INVESTIGATIONS_MAX_CONCURRENT=5 \
-  -v /host/investigations:/app/.investigations-mcp \
+  -v /host/investigations:/app/.investigations \
   -p 3000:3000 \
-  investigations-mcp:2.2.1
+  investigations:2.2.2
 ```
 
 ### **Health Check Endpoint**
@@ -112,10 +112,10 @@ curl http://localhost:3000/health
 # Response
 {
   "status": "healthy",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "timestamp": "2024-01-01T00:00:00Z",
   "storage": {
-    "path": "./.investigations-mcp",
+    "path": "./.investigations",
     "investigations": 5,
     "maxInvestigations": 50
   },
@@ -151,25 +151,25 @@ curl http://localhost:3000/health
 ### **Log Monitoring**
 ```bash
 # Monitor application logs
-tail -f /var/log/investigations-mcp/app.log
+tail -f /var/log/investigations/app.log
 
 # Monitor error logs
-grep "ERROR" /var/log/investigations-mcp/app.log
+grep "ERROR" /var/log/investigations/app.log
 
 # Monitor audit logs
-grep "AUDIT" /var/log/investigations-mcp/audit.log
+grep "AUDIT" /var/log/investigations/audit.log
 ```
 
 ### **Storage Management**
 ```bash
 # Check storage usage
-du -sh ./.investigations-mcp
+du -sh ./.investigations
 
 # Clean up old investigations (manual)
-find ./.investigations-mcp -name "*.json" -mtime +30 -delete
+find ./.investigations -name "*.json" -mtime +30 -delete
 
 # Backup investigations
-tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations-mcp
+tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations
 ```
 
 ### **Performance Monitoring**
@@ -185,8 +185,8 @@ tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations-mcp
 1. **Storage Directory Permissions**
    ```bash
    # Fix permissions
-   chmod 755 ./.investigations-mcp
-   chown -R $USER:$USER ./.investigations-mcp
+   chmod 755 ./.investigations
+   chown -R $USER:$USER ./.investigations
    ```
 
 2. **File Size Limits**
@@ -236,9 +236,9 @@ tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations-mcp
 
 ## 🔄 **UPGRADE PATH**
 
-### **From v2.0.x to v2.2.1**
+### **From v2.0.x to v2.2.2**
 1. Backup existing data
-2. Update to v2.2.1
+2. Update to v2.2.2
 3. Data automatically migrates to JSON format
 4. Verify functionality
 5. Remove old SQLite files
@@ -250,7 +250,7 @@ tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations-mcp
 
 ## ✅ **PRODUCTION READINESS CONFIRMATION**
 
-**This version (v2.2.1) is PRODUCTION READY with:**
+**This version (v2.2.2) is PRODUCTION READY with:**
 - ✅ Comprehensive error handling
 - ✅ Input validation and security
 - ✅ Production configuration

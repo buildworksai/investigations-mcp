@@ -1,4 +1,4 @@
-# Investigations MCP Tools - Setup Guide (v2.2.1)
+# Investigations MCP Tools - Setup Guide (v2.2.2)
 
 ## Quick Start
 
@@ -7,20 +7,20 @@
 - npm or yarn package manager
 - Docker (optional, for containerized deployment)
 
-### What's New in v2.2.1
+### What's New in v2.2.2
 - **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage
 - **Automatic FIFO Management**: Old investigations automatically cleaned up (max 50)
 - **No Database Setup**: No SQLite or database configuration required
 - **Enhanced Performance**: Eliminated native module dependencies
-- **Simplified Architecture**: Human-readable JSON files in `./.investigations-mcp/`
+- **Simplified Architecture**: Human-readable JSON files in `./.investigations/`
 
 ### ⚠️ Security Notice
 **IMPORTANT**: This software collects sensitive system data and stores it locally in JSON format without encryption. Ensure you have proper authorization and follow security best practices. See the full security disclaimer in README.md and LICENSE files.
 
 ### Storage Folder Management
-- **Storage Location**: All investigation data is stored in `./.investigations-mcp/` directory
+- **Storage Location**: All investigation data is stored in `./.investigations/` directory
 - **User Responsibility**: You are responsible for managing this folder
-- **Git Ignore**: **CRITICAL**: Add `.investigations-mcp/` to your `.gitignore` file
+- **Git Ignore**: **CRITICAL**: Add `.investigations/` to your `.gitignore` file
 - **Cleanup**: Manually delete the folder when no longer needed
 
 ### Installation
@@ -28,7 +28,7 @@
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd investigations-mcp
+   cd investigations
    ```
 
 2. **Install dependencies and build**
@@ -88,7 +88,7 @@ npm start
 - `REPORTS_DIR`: Directory for generated reports (default: `./reports`)
 
 ### Storage
-The system uses JSON-based file storage by default. All data is stored in the `./.investigations-mcp/` directory with automatic FIFO management (maximum 50 investigations).
+The system uses JSON-based file storage by default. All data is stored in the `./.investigations/` directory with automatic FIFO management (maximum 50 investigations).
 
 ## MCP Client Configuration
 
@@ -101,7 +101,7 @@ Add to your Cursor settings:
     "servers": {
       "investigations": {
         "command": "npx",
-        "args": ["buildworks-ai-investigations-mcp"],
+        "args": ["investigations"],
         "env": {}
       }
     }
@@ -118,7 +118,7 @@ Add to your Windsurf configuration:
     "servers": {
       "investigations": {
         "command": "npx",
-        "args": ["buildworks-ai-investigations-mcp"],
+        "args": ["investigations"],
         "env": {}
       }
     }
@@ -186,7 +186,7 @@ DEBUG=investigations:* npm start
 
 Check container logs:
 ```bash
-docker logs investigations-mcp
+docker logs investigations
 ```
 
 ## Development

@@ -144,7 +144,7 @@ export class HealthMonitor {
       const healthStatus: HealthStatus = {
         status,
         timestamp: new Date().toISOString(),
-        version: '2.2.1',
+        version: '2.2.2',
         uptime: Date.now() - this.startTime.getTime(),
         checks,
         metrics: this.metrics
@@ -166,7 +166,7 @@ export class HealthMonitor {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        version: '2.2.1',
+        version: '2.2.2',
         uptime: Date.now() - this.startTime.getTime(),
         checks: [{
           name: 'health_check_system',

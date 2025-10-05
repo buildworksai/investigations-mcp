@@ -29,16 +29,16 @@ Users must understand and accept the following security implications:
    - This software collects system information, logs, configurations, and
      potentially sensitive data from target systems
    - All investigation data is stored locally in JSON files in the
-     .investigations-mcp/ directory without encryption
-   - Users are responsible for managing the .investigations-mcp/ folder
-   - Users must add .investigations-mcp/ to their .gitignore file to prevent
+     .investigations/ directory without encryption
+   - Users are responsible for managing the .investigations/ folder
+   - Users must add .investigations/ to their .gitignore file to prevent
      committing sensitive investigation data to version control
    - Users are responsible for ensuring proper data protection and privacy
 
 2. STORAGE FOLDER MANAGEMENT:
-   - The software creates and uses the .investigations-mcp/ directory for storage
+   - The software creates and uses the .investigations/ directory for storage
    - Users are fully responsible for managing this directory
-   - Users must add .investigations-mcp/ to .gitignore to prevent data exposure
+   - Users must add .investigations/ to .gitignore to prevent data exposure
    - Users are responsible for cleaning up the directory when no longer needed
    - The software does not automatically manage directory lifecycle
 

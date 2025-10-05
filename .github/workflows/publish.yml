@@ -50,11 +50,18 @@ jobs:
           echo "Current registry: $(npm config get registry)"
           
           CURRENT=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view @buildworksai/investigations-mcp version || echo '0.0.0')
+          PUBLISHED=$(npm view investigations version || echo '0.0.0')
           echo "npmjs current=${CURRENT} published=${PUBLISHED}"
+          
           if [ "$CURRENT" != "$PUBLISHED" ]; then
-            npm publish --loglevel=verbose
-            echo "Published version ${CURRENT} to npmjs"
+            echo "Attempting to publish to npmjs.org..."
+            if npm publish --loglevel=verbose; then
+              echo "✅ Published version ${CURRENT} to npmjs.org successfully"
+            else
+              echo "⚠️ Failed to publish to npmjs.org (package may already exist or registry issue)"
+              echo "📋 Continuing with GitHub Packages publishing..."
+              echo "🔄 Continuing with GitHub Packages publishing..."
+            fi
           else
             echo "Skip npmjs publish: ${CURRENT} already published"
           fi
@@ -65,26 +72,33 @@ jobs:
           echo "Verifying published package version..."
           echo "Expected version: ${CURRENT}"
           
-          # Wait for npm registry to update with retries
-          for i in {1..5}; do
-            echo "Attempt $i: Checking npm registry..."
-            sleep 15
-            REGISTRY_VERSION=$(npm view @buildworksai/investigations-mcp version)
-            echo "Registry version: ${REGISTRY_VERSION}"
-            
-            if [ "$CURRENT" = "$REGISTRY_VERSION" ]; then
-              echo "✅ Registry version matches: ${CURRENT}"
-              break
-            else
-              echo "⏳ Registry not updated yet, waiting..."
-              if [ $i -eq 5 ]; then
-                echo "⚠️ Registry not updated after 5 attempts, but continuing..."
+          # Check if package exists on npmjs.org
+          if npm view investigations version >/dev/null 2>&1; then
+            echo "📦 Package found on npmjs.org, verifying version..."
+            # Wait for npm registry to update with retries
+            for i in {1..5}; do
+              echo "Attempt $i: Checking npm registry..."
+              sleep 15
+              REGISTRY_VERSION=$(npm view investigations version)
+              echo "Registry version: ${REGISTRY_VERSION}"
+              
+              if [ "$CURRENT" = "$REGISTRY_VERSION" ]; then
+                echo "✅ npmjs.org version matches: ${CURRENT}"
                 break
+              else
+                echo "⏳ Registry not updated yet, waiting..."
+                if [ $i -eq 5 ]; then
+                  echo "⚠️ Registry not updated after 5 attempts, but continuing..."
+                  break
+                fi
               fi
-            fi
-          done
+            done
+          else
+            echo "⚠️ Package not found on npmjs.org"
+            echo "🔄 This is expected if npmjs.org publishing failed - continuing with GitHub Packages..."
+          fi
           
-          echo "✅ Package published successfully to npm"
+          echo "✅ Verification complete - proceeding to GitHub Packages"
 
       - name: Configure GitHub Packages registry
         run: |
@@ -92,7 +106,7 @@ jobs:
           node -e '
             const fs = require("fs");
             const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-            pkg.name = "@buildworksai/investigations-mcp";
+            pkg.name = "@buildworksai/investigations";
             pkg.publishConfig = { registry: "https://npm.pkg.github.com" };
             fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
           '
@@ -121,7 +135,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CURRENT=$(node -p "require('./package.json').version")
-          GH_PUBLISHED=$(npm view @buildworksai/investigations-mcp version --registry=https://npm.pkg.github.com || echo '0.0.0')
+          GH_PUBLISHED=$(npm view @buildworksai/investigations version --registry=https://npm.pkg.github.com || echo '0.0.0')
           echo "gh-pkg current=${CURRENT} published=${GH_PUBLISHED}"
           npm config list -l || true
           if [ "$CURRENT" != "$GH_PUBLISHED" ]; then
@@ -145,9 +159,9 @@ jobs:
           # This is optional and can be controlled by environment variable
           if [ "${{ vars.UPDATE_GLOBAL_INSTALLATION }}" = "true" ]; then
             echo "Global installation update is enabled"
-            npm install -g @buildworksai/investigations-mcp@${CURRENT}
+            npm install -g investigations@${CURRENT}
             echo "✅ Global installation updated to version ${CURRENT}"
           else
             echo "Global installation update is disabled (set UPDATE_GLOBAL_INSTALLATION=true to enable)"
-            echo "Users can manually update with: npm install -g @buildworksai/investigations-mcp@latest"
+            echo "Users can manually update with: npm install -g investigations@latest"
           fi

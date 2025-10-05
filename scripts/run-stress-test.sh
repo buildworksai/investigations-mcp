@@ -26,7 +26,7 @@ npm run build
 
 # Set environment variables for stress testing
 export NODE_ENV=test
-export INVESTIGATIONS_STORAGE_PATH="./.investigations-mcp-stress-test"
+export INVESTIGATIONS_STORAGE_PATH="./.investigations-stress-test"
 export INVESTIGATIONS_MAX_COUNT=100
 export INVESTIGATIONS_LOG_LEVEL=info
 export INVESTIGATIONS_ENABLE_VALIDATION=true
@@ -35,7 +35,7 @@ export INVESTIGATIONS_ENABLE_AUDIT=true
 
 # Create stress test storage directory
 echo "📁 Setting up stress test environment..."
-mkdir -p ./.investigations-mcp-stress-test
+mkdir -p ./.investigations-stress-test
 
 # Run the stress test
 echo "🧪 Running stress test..."
