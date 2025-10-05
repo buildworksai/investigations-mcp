@@ -28,7 +28,7 @@ export class FileLockManager {
 
   static async acquireLock(filePath: string, options: LockOptions = {}): Promise<any> {
     const lockOptions = { ...this.DEFAULT_OPTIONS, ...options };
-    const lockPath = `${filePath}.lock`;
+    const _lockPath = `${filePath}.lock`;
 
     try {
       // Ensure the directory exists
@@ -95,7 +95,7 @@ export class FileLockManager {
     operation: () => Promise<T>,
     options: LockOptions = {}
   ): Promise<T> {
-    const lock = await this.acquireLock(filePath, options);
+    const _lock = await this.acquireLock(filePath, options);
     
     try {
       return await operation();

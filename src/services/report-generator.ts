@@ -6,8 +6,7 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { InvestigationCase, InvestigationReport, EvidenceItem } from '../types/index.js';
-// import { AnalysisResult } from '../types/index.js';
+import type { InvestigationCase, InvestigationReport, EvidenceItem } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
 
 export interface ReportOptions {
@@ -188,7 +187,7 @@ export class ReportGenerator {
     sections.push(`\n${investigation.description}`);
 
     // Affected Systems
-    if (investigation.affected_systems.length > 0) {
+    if (investigation.affected_systems.length) {
       sections.push(`\n## Affected Systems`);
       investigation.affected_systems.forEach(system => {
         sections.push(`- ${system}`);
@@ -196,7 +195,7 @@ export class ReportGenerator {
     }
 
     // Root Causes
-    if (investigation.root_causes.length > 0) {
+    if (investigation.root_causes.length) {
       sections.push(`\n## Root Causes`);
       investigation.root_causes.forEach((cause, index) => {
         sections.push(`${index + 1}. ${cause}`);
@@ -204,7 +203,7 @@ export class ReportGenerator {
     }
 
     // Contributing Factors
-    if (investigation.contributing_factors.length > 0) {
+    if (investigation.contributing_factors.length) {
       sections.push(`\n## Contributing Factors`);
       investigation.contributing_factors.forEach((factor, index) => {
         sections.push(`${index + 1}. ${factor}`);
@@ -212,7 +211,7 @@ export class ReportGenerator {
     }
 
     // Findings
-    if (investigation.findings.length > 0) {
+    if (investigation.findings.length) {
       sections.push(`\n## Findings`);
       investigation.findings.forEach((finding, index) => {
         sections.push(`\n### Finding ${index + 1}: ${finding.title}`);
@@ -226,7 +225,7 @@ export class ReportGenerator {
     }
 
     // Evidence
-    if (options.include_evidence && investigation.evidence.length > 0) {
+    if (options.include_evidence && investigation.evidence.length) {
       sections.push(`\n## Evidence`);
       sections.push(`\nTotal evidence items: ${investigation.evidence.length}`);
       
@@ -247,7 +246,7 @@ export class ReportGenerator {
     // Timeline
     if (options.include_timeline) {
       const timeline = this.buildTimeline(investigation);
-      if (timeline.length > 0) {
+      if (timeline.length) {
         sections.push(`\n## Timeline`);
         timeline.forEach((event, index) => {
           sections.push(`${index + 1}. **${event.timestamp}** - ${event.description} (${event.source})`);
@@ -256,7 +255,7 @@ export class ReportGenerator {
     }
 
     // Analysis Results
-    if (options.include_analysis && investigation.analysis_results.length > 0) {
+    if (options.include_analysis && investigation.analysis_results.length) {
       sections.push(`\n## Analysis Results`);
       investigation.analysis_results.forEach((result, index) => {
         sections.push(`\n### Analysis ${index + 1}: ${result.type.charAt(0).toUpperCase() + result.type.slice(1)} Analysis`);
@@ -267,14 +266,14 @@ export class ReportGenerator {
           sections.push(`**Hypothesis:** ${result.hypothesis}`);
         }
         
-        if (result.conclusions.length > 0) {
+        if (result.conclusions.length) {
           sections.push(`\n**Conclusions:**`);
           result.conclusions.forEach(conclusion => {
             sections.push(`- ${conclusion}`);
           });
         }
         
-        if (result.recommendations.length > 0) {
+        if (result.recommendations.length) {
           sections.push(`\n**Recommendations:**`);
           result.recommendations.forEach(recommendation => {
             sections.push(`- ${recommendation}`);
@@ -284,7 +283,7 @@ export class ReportGenerator {
     }
 
     // Recommendations
-    if (options.include_recommendations && investigation.recommendations.length > 0) {
+    if (options.include_recommendations && investigation.recommendations.length) {
       sections.push(`\n## Recommendations`);
       investigation.recommendations.forEach((recommendation, index) => {
         sections.push(`${index + 1}. ${recommendation}`);
@@ -292,7 +291,7 @@ export class ReportGenerator {
     }
 
     // Metadata
-    if (Object.keys(investigation.metadata).length > 0) {
+    if (Object.keys(investigation.metadata).length) {
       sections.push(`\n## Metadata`);
       sections.push(`\n\`\`\`json`);
       sections.push(JSON.stringify(investigation.metadata, null, 2));
@@ -428,8 +427,8 @@ export class ReportGenerator {
 
     // Sort by timestamp with strong guards
     return timeline.sort((a, b) => {
-      const at = a && a.timestamp instanceof Date ? a.timestamp.getTime() : (a && a.timestamp ? new Date(a.timestamp as any).getTime() : 0);
-      const bt = b && b.timestamp instanceof Date ? b.timestamp.getTime() : (b && b.timestamp ? new Date(b.timestamp as any).getTime() : 0);
+      const at = a?.timestamp instanceof Date ? a.timestamp.getTime() : (a?.timestamp ? new Date(a.timestamp as any).getTime() : 0);
+      const bt = b?.timestamp instanceof Date ? b.timestamp.getTime() : (b?.timestamp ? new Date(b.timestamp as any).getTime() : 0);
       const as = Number.isNaN(at) ? 0 : at;
       const bs = Number.isNaN(bt) ? 0 : bt;
       return as - bs;

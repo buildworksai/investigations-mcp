@@ -77,7 +77,7 @@ export class EnvironmentConfigManager {
       enableAudit: Joi.boolean().default(true),
       
       // Performance configuration
-      maxConcurrent: Joi.number().integer().min(1).max(100).default(5),
+      maxConcurrent: Joi.number().integer().min(1).max(1000).default(150),
       operationTimeout: Joi.number().integer().min(1000).max(300000).default(30000), // 30 seconds
       retryAttempts: Joi.number().integer().min(0).max(10).default(3),
       

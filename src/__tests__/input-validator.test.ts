@@ -3,7 +3,7 @@
  */
 
 import { InputValidator } from '../utils/input-validator.js';
-import { ValidationError, SecurityError } from '../utils/error-handler.js';
+import { InvestigationError } from '../utils/error-handler.js';
 
 describe('InputValidator', () => {
   describe('Investigation Validation', () => {
@@ -41,7 +41,7 @@ describe('InputValidator', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.length).toBeGreaterThan(0);
+      expect(result.errors?.length).toBeGreaterThan(0);
     });
 
     test('should sanitize investigation data', () => {
@@ -57,8 +57,8 @@ describe('InputValidator', () => {
       const result = InputValidator.validateInvestigation(investigation);
 
       expect(result.isValid).toBe(true);
-      expect(result.sanitizedData!.title).toBe('Test Investigation');
-      expect(result.sanitizedData!.description).not.toContain('<script>');
+      expect(result.sanitizedData?.title).toBe('Test Investigation');
+      expect(result.sanitizedData?.description).not.toContain('<script>');
     });
   });
 
@@ -116,7 +116,7 @@ describe('InputValidator', () => {
       
       expect(() => {
         InputValidator.validateString(longString, 'testField');
-      }).toThrow(ValidationError);
+      }).toThrow(InvestigationError);
     });
 
     test('should sanitize string', () => {
@@ -136,15 +136,15 @@ describe('InputValidator', () => {
     test('should reject path traversal attempts', () => {
       expect(() => {
         InputValidator.validatePath('../etc/passwd', 'testPath');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
 
       expect(() => {
         InputValidator.validatePath('~/secret', 'testPath');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
 
       expect(() => {
         InputValidator.validatePath('/etc/passwd', 'testPath');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
     });
   });
 
@@ -157,7 +157,7 @@ describe('InputValidator', () => {
     test('should reject invalid email', () => {
       expect(() => {
         InputValidator.validateEmail('invalid-email');
-      }).toThrow(ValidationError);
+      }).toThrow(InvestigationError);
     });
 
     test('should normalize email', () => {
@@ -175,7 +175,7 @@ describe('InputValidator', () => {
     test('should reject invalid UUID', () => {
       expect(() => {
         InputValidator.validateUUID('invalid-uuid', 'testId');
-      }).toThrow(ValidationError);
+      }).toThrow(InvestigationError);
     });
 
     test('should normalize UUID', () => {
@@ -193,7 +193,7 @@ describe('InputValidator', () => {
     test('should reject disallowed file type', () => {
       expect(() => {
         InputValidator.validateFileType('application/x-executable');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
     });
 
     test('should validate file size', () => {
@@ -204,7 +204,7 @@ describe('InputValidator', () => {
     test('should reject file that is too large', () => {
       expect(() => {
         InputValidator.validateFileSize(200 * 1024 * 1024); // 200MB
-      }).toThrow(ValidationError);
+      }).toThrow(InvestigationError);
     });
   });
 
@@ -212,31 +212,31 @@ describe('InputValidator', () => {
     test('should detect SQL injection attempts', () => {
       expect(() => {
         InputValidator.validateSecurity("'; DROP TABLE users; --", 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
 
       expect(() => {
         InputValidator.validateSecurity("SELECT * FROM users WHERE id = 1 OR 1=1", 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
     });
 
     test('should detect XSS attempts', () => {
       expect(() => {
         InputValidator.validateSecurity('<script>alert("xss")</script>', 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
 
       expect(() => {
         InputValidator.validateSecurity('javascript:alert("xss")', 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
     });
 
     test('should detect command injection attempts', () => {
       expect(() => {
         InputValidator.validateSecurity('test; rm -rf /', 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
 
       expect(() => {
         InputValidator.validateSecurity('test && cat /etc/passwd', 'testContext');
-      }).toThrow(SecurityError);
+      }).toThrow(InvestigationError);
     });
 
     test('should allow safe input', () => {

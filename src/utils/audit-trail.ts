@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from './logger.js';
-import { ErrorHandler, StorageError } from './error-handler.js';
+import { ErrorHandler } from './error-handler.js';
 import { EnvironmentConfigManager } from '../config/environment.js';
 
 export interface AuditEntry {
@@ -47,7 +47,7 @@ export class AuditTrail {
   private auditBuffer: AuditEntry[] = [];
   private bufferSize: number = 100;
   private flushInterval: number = 30000; // 30 seconds
-  private flushTimer?: NodeJS.Timeout;
+  private flushTimer?: ReturnType<typeof setTimeout>;
 
   private constructor() {
     this.config = EnvironmentConfigManager.getInstance();
@@ -106,7 +106,7 @@ export class AuditTrail {
   ): Promise<void> {
     await this.initialize();
 
-    const context = ErrorHandler.createContext('log_audit_entry', options.investigationId, options.userId, {
+    const _context = ErrorHandler.createContext('log_audit_entry', options.investigationId, options.userId, {
       action,
       resource,
       options

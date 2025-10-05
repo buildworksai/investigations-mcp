@@ -83,7 +83,7 @@ export class InputValidator {
     created_at: Joi.date().iso().required()
   });
 
-  static validateInvestigation(data: any): ValidationResult {
+  static validateInvestigation(data: unknown): ValidationResult {
     try {
       const { error, value } = this.investigationSchema.validate(data, {
         abortEarly: false,
@@ -111,7 +111,7 @@ export class InputValidator {
     }
   }
 
-  static validateEvidence(data: any): ValidationResult {
+  static validateEvidence(data: unknown): ValidationResult {
     try {
       const { error, value } = this.evidenceSchema.validate(data, {
         abortEarly: false,
@@ -139,7 +139,7 @@ export class InputValidator {
     }
   }
 
-  static validateAnalysis(data: any): ValidationResult {
+  static validateAnalysis(data: unknown): ValidationResult {
     try {
       const { error, value } = this.analysisSchema.validate(data, {
         abortEarly: false,
@@ -270,8 +270,9 @@ export class InputValidator {
 
     return input
       .trim()
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
-      .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+      .replace(/<script[^>]*>(.*?)<\/script>/gi, '$1') // Remove script tags but keep content
       .replace(/<[^>]*>/g, '') // Remove all HTML tags
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/data:/gi, '') // Remove data: protocol
@@ -335,9 +336,9 @@ export class InputValidator {
 
   private static containsCommandInjection(input: any): boolean {
     const commandPatterns = [
-      /[;&|`$(){}[\]]/,
+      /[;&|`$(){}[\]\\]/,
       /\b(cat|ls|pwd|whoami|id|uname|ps|netstat|ifconfig)\b/i,
-      /(\||&&|;|\$\(|\`)/,
+      /(\||&&|;|\$\(|`)/,
       /(rm\s+-rf|del\s+\/s|format\s+)/i
     ];
 

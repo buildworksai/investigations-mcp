@@ -4,7 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { 
+import type { 
   EvidenceItem, 
   AnalysisResult, 
   CausalRelationship, 
@@ -12,10 +12,6 @@ import {
   TimelineEvent,
   TimelinePattern,
   PerformanceMetric
-  // PerformanceBottleneck,
-  // SecurityIssue,
-  // CorrelationRule,
-  // StatisticalAnomaly
 } from '../types/index.js';
 import { AnalysisError } from '../types/index.js';
 
@@ -481,7 +477,7 @@ export class AnalysisEngine {
     
     conclusions.push(`Timeline analysis identified ${timeline.length} events`);
     
-    if (_patterns.length > 0) {
+    if (_patterns.length) {
       conclusions.push(`Found ${_patterns.length} temporal patterns`);
     }
     
@@ -498,7 +494,7 @@ export class AnalysisEngine {
     recommendations.push('Review timeline for any gaps or missing events');
     recommendations.push('Correlate timeline events with system changes');
     
-    if (patterns.length > 0) {
+    if (patterns.length) {
       recommendations.push('Investigate identified temporal patterns further');
     }
     
@@ -510,7 +506,7 @@ export class AnalysisEngine {
     return Math.min(0.9, 0.5 + (patterns.length * 0.1));
   }
 
-  private evaluateHypothesisAgainstTimeline(hypothesis: string, timeline: any[]): boolean {
+  private evaluateHypothesisAgainstTimeline(_hypothesis: string, timeline: any[]): boolean {
     // Simplified hypothesis evaluation
     return timeline.length > 0;
   }
@@ -545,19 +541,19 @@ export class AnalysisEngine {
     
     // Analyze CPU patterns
     const cpuPatterns = this.analyzeCPUPatterns(metrics);
-    if (cpuPatterns.length > 0) patterns.push(...cpuPatterns);
+    if (cpuPatterns.length) patterns.push(...cpuPatterns);
     
     // Analyze memory patterns
     const memoryPatterns = this.analyzeMemoryPatterns(metrics);
-    if (memoryPatterns.length > 0) patterns.push(...memoryPatterns);
+    if (memoryPatterns.length) patterns.push(...memoryPatterns);
     
     // Analyze disk I/O patterns
     const diskPatterns = this.analyzeDiskPatterns(metrics);
-    if (diskPatterns.length > 0) patterns.push(...diskPatterns);
+    if (diskPatterns.length) patterns.push(...diskPatterns);
     
     // Analyze network patterns
     const networkPatterns = this.analyzeNetworkPatterns(metrics);
-    if (networkPatterns.length > 0) patterns.push(...networkPatterns);
+    if (networkPatterns.length) patterns.push(...networkPatterns);
     
     return patterns;
   }
@@ -567,19 +563,19 @@ export class AnalysisEngine {
     
     // CPU bottlenecks
     const cpuBottlenecks = this.identifyCPUBottlenecks(metrics);
-    if (cpuBottlenecks.length > 0) bottlenecks.push(...cpuBottlenecks);
+    if (cpuBottlenecks.length) bottlenecks.push(...cpuBottlenecks);
     
     // Memory bottlenecks
     const memoryBottlenecks = this.identifyMemoryBottlenecks(metrics);
-    if (memoryBottlenecks.length > 0) bottlenecks.push(...memoryBottlenecks);
+    if (memoryBottlenecks.length) bottlenecks.push(...memoryBottlenecks);
     
     // Disk bottlenecks
     const diskBottlenecks = this.identifyDiskBottlenecks(metrics);
-    if (diskBottlenecks.length > 0) bottlenecks.push(...diskBottlenecks);
+    if (diskBottlenecks.length) bottlenecks.push(...diskBottlenecks);
     
     // Network bottlenecks
     const networkBottlenecks = this.identifyNetworkBottlenecks(metrics);
-    if (networkBottlenecks.length > 0) bottlenecks.push(...networkBottlenecks);
+    if (networkBottlenecks.length) bottlenecks.push(...networkBottlenecks);
     
     return bottlenecks;
   }
@@ -598,7 +594,7 @@ export class AnalysisEngine {
     }
     
     if (_hypothesis) {
-      conclusions.push(`Hypothesis "${_hypothesis}" ${bottlenecks.length > 0 ? 'supported' : 'not supported'} by evidence`);
+      conclusions.push(`Hypothesis "${_hypothesis}" ${bottlenecks.length ? 'supported' : 'not supported'} by evidence`);
     }
     
     return conclusions;
@@ -646,7 +642,7 @@ export class AnalysisEngine {
     const patterns = [];
     const cpuMetrics = metrics.filter(m => m.content?.cpu);
     
-    if (cpuMetrics.length > 0) {
+    if (cpuMetrics.length) {
       patterns.push({
         type: 'cpu_usage',
         description: 'CPU usage patterns identified',
@@ -662,7 +658,7 @@ export class AnalysisEngine {
     const patterns = [];
     const memoryMetrics = metrics.filter(m => m.content?.memory);
     
-    if (memoryMetrics.length > 0) {
+    if (memoryMetrics.length) {
       patterns.push({
         type: 'memory_usage',
         description: 'Memory usage patterns identified',
@@ -678,7 +674,7 @@ export class AnalysisEngine {
     const patterns = [];
     const diskMetrics = metrics.filter(m => m.content?.disk);
     
-    if (diskMetrics.length > 0) {
+    if (diskMetrics.length) {
       patterns.push({
         type: 'disk_io',
         description: 'Disk I/O patterns identified',
@@ -694,7 +690,7 @@ export class AnalysisEngine {
     const patterns = [];
     const networkMetrics = metrics.filter(m => m.content?.network);
     
-    if (networkMetrics.length > 0) {
+    if (networkMetrics.length) {
       patterns.push({
         type: 'network_usage',
         description: 'Network usage patterns identified',
@@ -710,7 +706,7 @@ export class AnalysisEngine {
     const bottlenecks = [];
     const cpuMetrics = metrics.filter(m => m.content?.cpu);
     
-    if (cpuMetrics.length > 0) {
+    if (cpuMetrics.length) {
       bottlenecks.push({
         type: 'cpu',
         description: 'High CPU utilization detected',
@@ -726,7 +722,7 @@ export class AnalysisEngine {
     const bottlenecks = [];
     const memoryMetrics = metrics.filter(m => m.content?.memory);
     
-    if (memoryMetrics.length > 0) {
+    if (memoryMetrics.length) {
       bottlenecks.push({
         type: 'memory',
         description: 'High memory utilization detected',
@@ -742,7 +738,7 @@ export class AnalysisEngine {
     const bottlenecks = [];
     const diskMetrics = metrics.filter(m => m.content?.disk);
     
-    if (diskMetrics.length > 0) {
+    if (diskMetrics.length) {
       bottlenecks.push({
         type: 'disk',
         description: 'High disk I/O detected',
@@ -758,7 +754,7 @@ export class AnalysisEngine {
     const bottlenecks = [];
     const networkMetrics = metrics.filter(m => m.content?.network);
     
-    if (networkMetrics.length > 0) {
+    if (networkMetrics.length) {
       bottlenecks.push({
         type: 'network',
         description: 'Network congestion detected',

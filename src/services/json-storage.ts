@@ -15,9 +15,8 @@ import type {
 } from '../types/index.js';
 import { InvestigationError } from '../types/index.js';
 import { FileLockManager } from '../utils/file-lock.js';
-import { InputValidator } from '../utils/input-validator.js';
 import { logger } from '../utils/logger.js';
-import { ErrorHandler, StorageError } from '../utils/error-handler.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 import { EnvironmentConfigManager } from '../config/environment.js';
 
 interface StorageIndex {
@@ -579,7 +578,10 @@ export class JsonStorageService {
       await this.removeFromReportsIndex(investigationId);
 
     } catch (error) {
-      console.error(`Failed to delete investigation data for ${investigationId}:`, error);
+      logger.error(`Failed to delete investigation data for ${investigationId}`, error as Error, {
+        operation: 'delete_investigation_data',
+        metadata: { investigationId }
+      });
     }
   }
 
@@ -728,8 +730,9 @@ export class JsonStorageService {
       let results = evidence;
 
       // Filter by evidence types
-      if (options.evidence_types && options.evidence_types.length > 0) {
-        results = results.filter(item => options.evidence_types?.includes(item.type));
+      if (options.evidence_types?.length) {
+        const evidenceTypes = options.evidence_types;
+        results = results.filter(item => evidenceTypes.includes(item.type));
       }
 
       // Filter by time range

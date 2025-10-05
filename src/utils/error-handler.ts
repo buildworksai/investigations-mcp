@@ -3,6 +3,8 @@
  * Provides structured error handling, retry logic, and error categorization
  */
 
+import { logger } from './logger.js';
+
 export interface ErrorContext {
   operation: string;
   investigationId?: string;
@@ -115,9 +117,15 @@ export class ErrorHandler {
             this.MAX_RETRY_DELAY
           );
           
-          console.warn(`Operation ${context.operation} failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`, {
-            error: error instanceof Error ? error.message : String(error),
-            context
+          logger.warn(`Operation ${context.operation} failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`, {
+            operation: 'retry_operation',
+            metadata: {
+              error: error instanceof Error ? error.message : String(error),
+              context,
+              attempt,
+              maxRetries,
+              delay
+            }
           });
           
           await this.delay(delay);
@@ -158,6 +166,11 @@ export class ErrorHandler {
     const message = error.message || 'Unknown error occurred';
     const code = this.categorizeError(error);
     const retryable = this.isRetryableError(error);
+
+    // If it's already a specific error type, preserve it
+    if (error instanceof ValidationError || error instanceof SecurityError || error instanceof StorageError) {
+      return error;
+    }
 
     return new InvestigationError(
       message,

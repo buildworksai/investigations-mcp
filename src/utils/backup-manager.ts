@@ -93,7 +93,7 @@ export class BackupManager {
 
       // Copy all files from source to backup
       await fs.copy(sourcePath, backupDir, {
-        filter: (src, dest) => {
+        filter: (src, _dest) => {
           // Skip backup directories to avoid recursion
           return !src.includes('/backups/');
         }
@@ -193,7 +193,7 @@ export class BackupManager {
 
       // Restore files
       await fs.copy(backupDir, targetPath, {
-        filter: (src, dest) => {
+        filter: (src, _dest) => {
           // Skip backup-info.json file
           return !src.endsWith('backup-info.json');
         }

@@ -1,19 +1,24 @@
 {
-  "name": "buildworks-ai-investigations-mcp",
+  "name": "@buildworksai/investigations-mcp",
   "version": "2.2.1",
   "description": "Investigations MCP by BuildWorks.AI — forensic investigations and root cause analysis server for MCP-compatible IDEs.",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "buildworks-ai-investigations-mcp": "dist/index.js"
+    "buildworks-ai-investigations-mcp": "dist/index.js",
+    "investigations-mcp": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "jest --config jest.config.js --passWithNoTests",
+    "test:stress": "tsx scripts/simple-stress-test.ts",
+    "test:stress:full": "tsx scripts/stress-test.ts",
+    "test:stress:build": "npm run build && node --max-old-space-size=4096 --expose-gc dist/scripts/simple-stress-test.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
+    "prepare-publish": "node scripts/prepare-publish.js",
     "docker:build": "docker build -t buildworks-ai-investigations-mcp:latest .",
     "docker:run": "docker run --rm -i buildworks-ai-investigations-mcp:latest",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up"

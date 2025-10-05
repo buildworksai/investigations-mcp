@@ -133,9 +133,9 @@ export class HealthMonitor {
       const warningChecks = checks.filter(check => check.status === 'warn');
       
       let status: 'healthy' | 'degraded' | 'unhealthy';
-      if (failedChecks.length > 0) {
+      if (failedChecks.length) {
         status = 'unhealthy';
-      } else if (warningChecks.length > 0) {
+      } else if (warningChecks.length) {
         status = 'degraded';
       } else {
         status = 'healthy';
@@ -308,7 +308,7 @@ export class HealthMonitor {
     const startTime = Date.now();
     
     try {
-      const config = this.config.getConfig();
+      // const config = this.config.getConfig();
       const summary = this.config.getConfigSummary();
       
       return {
@@ -408,7 +408,7 @@ export class HealthMonitor {
       // Lock metrics
       this.metrics.locks = {
         active: FileLockManager.getLockCount(),
-        stale: 0 // TODO: Implement stale lock detection
+        stale: 0 // Stale lock detection not implemented in current version
       };
 
       // Performance metrics

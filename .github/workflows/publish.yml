@@ -37,12 +37,12 @@ jobs:
           echo "Built version: $(node dist/index.js --version)"
           echo "Package.json version: $(node -p "require('./package.json').version")"
 
-      - name: Publish to npmjs (unscoped)
+      - name: Publish to npmjs (scoped)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           CURRENT=$(node -p "require('./package.json').version")
-          PUBLISHED=$(npm view buildworks-ai-investigations-mcp version || echo '0.0.0')
+          PUBLISHED=$(npm view @buildworksai/investigations-mcp version || echo '0.0.0')
           echo "npmjs current=${CURRENT} published=${PUBLISHED}"
           if [ "$CURRENT" != "$PUBLISHED" ]; then
             npm publish --loglevel=verbose
@@ -61,7 +61,7 @@ jobs:
           for i in {1..5}; do
             echo "Attempt $i: Checking npm registry..."
             sleep 15
-            REGISTRY_VERSION=$(npm view buildworks-ai-investigations-mcp version)
+            REGISTRY_VERSION=$(npm view @buildworksai/investigations-mcp version)
             echo "Registry version: ${REGISTRY_VERSION}"
             
             if [ "$CURRENT" = "$REGISTRY_VERSION" ]; then
@@ -137,9 +137,9 @@ jobs:
           # This is optional and can be controlled by environment variable
           if [ "${{ vars.UPDATE_GLOBAL_INSTALLATION }}" = "true" ]; then
             echo "Global installation update is enabled"
-            npm install -g buildworks-ai-investigations-mcp@${CURRENT}
+            npm install -g @buildworksai/investigations-mcp@${CURRENT}
             echo "✅ Global installation updated to version ${CURRENT}"
           else
             echo "Global installation update is disabled (set UPDATE_GLOBAL_INSTALLATION=true to enable)"
-            echo "Users can manually update with: npm install -g buildworks-ai-investigations-mcp@latest"
+            echo "Users can manually update with: npm install -g @buildworksai/investigations-mcp@latest"
           fi

@@ -17,11 +17,11 @@ import { EvidenceCollector } from './collectors/evidence-collector.js';
 import { AnalysisEngine } from './analyzers/analysis-engine.js';
 import { ReportGenerator } from './services/report-generator.js';
 import { investigationTools } from './tools/investigation-tools.js';
-import {
+import type {
   InvestigationCase,
-  EvidenceItem,
-  // AnalysisResult,
-  // Finding,
+  EvidenceItem
+} from './types/index.js';
+import {
   InvestigationError,
   EvidenceError,
   AnalysisError
@@ -55,7 +55,7 @@ class InvestigationMCPServer {
     this.setupHandlers();
     
     // Log storage path for debugging (stderr to avoid interfering with MCP stdio)
-    console.error(`JSON storage will be created at: ${this.database.getDatabasePath()}`);
+    console.error(`JSON storage will be created at: ${this.database.getStoragePath()}`);
   }
 
   private setupHandlers(): void {

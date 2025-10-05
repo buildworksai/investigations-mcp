@@ -56,6 +56,7 @@ export default [
         beforeEach: 'readonly',
         afterEach: 'readonly',
         it: 'readonly',
+        jest: 'readonly',
       },
     },
     plugins: {
