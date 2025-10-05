@@ -41,9 +41,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Configure npm for npmjs.org registry
+          # Remove existing .npmrc and configure for npmjs.org
+          rm -f .npmrc ~/.npmrc
           echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           echo "registry=https://registry.npmjs.org" >> ~/.npmrc
+          
+          # Verify registry configuration
+          echo "Current registry: $(npm config get registry)"
           
           CURRENT=$(node -p "require('./package.json').version")
           PUBLISHED=$(npm view @buildworksai/investigations-mcp version || echo '0.0.0')
