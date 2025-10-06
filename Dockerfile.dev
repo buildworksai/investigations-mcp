@@ -1,4 +1,4 @@
-# Investigations MCP Tools v2.2.3 - Development Dockerfile
+# Investigations MCP Tools v2.2.5 - Development Dockerfile
 FROM node:18-alpine
 
 # Set working directory

@@ -1,4 +1,4 @@
-# 🚀 Production Ready - Investigations MCP v2.2.3
+# 🚀 Production Ready - Investigations MCP v2.2.5
 
 ## ✅ **PRODUCTION READINESS CHECKLIST**
 
@@ -90,7 +90,7 @@ INVESTIGATIONS_DEBUG=false
 
 ```bash
 # Build production image
-docker build -t investigations:2.2.3 .
+docker build -t investigations:2.2.5 .
 
 # Run with production configuration
 docker run -d \
@@ -100,7 +100,7 @@ docker run -d \
   -e INVESTIGATIONS_MAX_CONCURRENT=5 \
   -v /host/investigations:/app/.investigations \
   -p 3000:3000 \
-  investigations:2.2.3
+  investigations:2.2.5
 ```
 
 ### **Health Check Endpoint**
@@ -112,7 +112,7 @@ curl http://localhost:3000/health
 # Response
 {
   "status": "healthy",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "timestamp": "2024-01-01T00:00:00Z",
   "storage": {
     "path": "./.investigations",
@@ -236,9 +236,9 @@ tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations
 
 ## 🔄 **UPGRADE PATH**
 
-### **From v2.0.x to v2.2.3**
+### **From v2.0.x to v2.2.5**
 1. Backup existing data
-2. Update to v2.2.3
+2. Update to v2.2.5
 3. Data automatically migrates to JSON format
 4. Verify functionality
 5. Remove old SQLite files
@@ -250,7 +250,7 @@ tar -czf investigations-backup-$(date +%Y%m%d).tar.gz ./.investigations
 
 ## ✅ **PRODUCTION READINESS CONFIRMATION**
 
-**This version (v2.2.3) is PRODUCTION READY with:**
+**This version (v2.2.5) is PRODUCTION READY with:**
 - ✅ Comprehensive error handling
 - ✅ Input validation and security
 - ✅ Production configuration

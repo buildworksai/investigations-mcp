@@ -4,6 +4,8 @@
  */
 
 import Joi from 'joi';
+import path from 'path';
+import fs from 'fs-extra';
 import { logger } from '../utils/logger.js';
 import { ValidationError } from '../utils/error-handler.js';
 
@@ -120,16 +122,45 @@ export class EnvironmentConfigManager {
         throw new ValidationError(`Configuration validation failed: ${errorMessages.join(', ')}`);
       }
 
+      // Resolve storage path to absolute and validate writability
+      const resolvedStoragePath = this.resolveAndValidateStoragePath(value.storagePath);
+      const normalizedConfig: EnvironmentConfig = {
+        ...value,
+        storagePath: resolvedStoragePath
+      };
+
       logger.info('Configuration loaded and validated successfully', {
         operation: 'config_load',
-        metadata: { nodeEnv: value.nodeEnv, logLevel: value.logLevel }
+        metadata: { nodeEnv: normalizedConfig.nodeEnv, logLevel: normalizedConfig.logLevel, storagePath: normalizedConfig.storagePath }
       });
 
-      return value;
+      return normalizedConfig;
     } catch (error) {
       logger.error('Failed to load configuration', error as Error);
       throw error;
     }
+  }
+
+  private resolveAndValidateStoragePath(inputPath: string): string {
+    // If the value is already absolute, use as-is; otherwise resolve against CWD
+    const candidate = path.isAbsolute(inputPath) ? inputPath : path.resolve(process.cwd(), inputPath);
+
+    // Ensure directory exists (creates if missing) and check writability
+    try {
+      fs.ensureDirSync(candidate);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new ValidationError(`Failed to create storage directory at ${candidate}: ${message}`);
+    }
+
+    try {
+      // Attempt to write to the directory (non-destructive check via access)
+      fs.accessSync(candidate, fs.constants.W_OK);
+    } catch {
+      throw new ValidationError(`Storage directory is not writable: ${candidate}. Set INVESTIGATIONS_STORAGE_PATH to a writable absolute path.`);
+    }
+
+    return candidate;
   }
 
   private loadFromEnvironment(): Partial<EnvironmentConfig> {
@@ -273,7 +304,7 @@ export class EnvironmentConfigManager {
   }
 
   // Method to get configuration summary (for health checks)
-  getConfigSummary(): Record<string, any> {
+  getConfigSummary(): Record<string, unknown> {
     return {
       nodeEnv: this.config.nodeEnv,
       logLevel: this.config.logLevel,

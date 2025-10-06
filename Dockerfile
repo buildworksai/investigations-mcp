@@ -1,4 +1,4 @@
-# Investigations MCP Tools v2.2.3
+# Investigations MCP Tools v2.2.5
 # Use Node.js 18 LTS as base image
 FROM node:18-alpine
 

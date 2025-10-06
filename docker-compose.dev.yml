@@ -1,4 +1,4 @@
-# Investigations MCP Tools v2.2.3 - Development Docker Compose Configuration
+# Investigations MCP Tools v2.2.5 - Development Docker Compose Configuration
 version: '3.8'
 
 services:
@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: investigations-dev-v2.2.3
+    container_name: investigations-dev-v2.2.5
     stdin_open: true
     tty: true
     volumes:
@@ -15,7 +15,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - VERSION=2.2.3
+      - VERSION=2.2.5
     command: npm run dev
     networks:
       - mcp-dev-network

@@ -55,7 +55,7 @@ export class JsonStorageService {
     this.config = EnvironmentConfigManager.getInstance();
     
     if (storagePath) {
-      this.storagePath = storagePath;
+      this.storagePath = path.isAbsolute(storagePath) ? storagePath : path.resolve(process.cwd(), storagePath);
     } else {
       this.storagePath = this.config.getStoragePath();
     }
@@ -77,6 +77,24 @@ export class JsonStorageService {
     });
 
     try {
+      // Validate that storagePath is absolute and writable before proceeding
+      if (!path.isAbsolute(this.storagePath)) {
+        throw new InvestigationError(
+          `Storage path must be absolute. Resolved value: ${this.storagePath}`,
+          'STORAGE_PATH_NOT_ABSOLUTE'
+        );
+      }
+
+      try {
+        await fs.ensureDir(this.storagePath);
+        await fs.access(this.storagePath, fs.constants.W_OK);
+      } catch (ioErr) {
+        throw new InvestigationError(
+          `Storage path is not writable or cannot be created: ${this.storagePath}. ${(ioErr as Error).message}`,
+          'STORAGE_PATH_NOT_WRITABLE'
+        );
+      }
+
       logger.info('Initializing JSON storage', {
         operation: 'storage_initialize',
         metadata: { storagePath: this.storagePath, maxInvestigations: this.MAX_INVESTIGATIONS }
@@ -182,7 +200,7 @@ export class JsonStorageService {
       const investigation = await fs.readJson(investigationPath);
       
       // Deserialize dates from JSON
-      const deserializedInvestigation = this.deserializeDates(investigation);
+      const deserializedInvestigation = this.deserializeDates(investigation) as InvestigationCase;
       
       // Load related data
       deserializedInvestigation.evidence = await this.getEvidence(id);
@@ -342,7 +360,7 @@ export class JsonStorageService {
           const evidencePath = path.join(evidenceDir, file);
           const evidenceItem = await fs.readJson(evidencePath);
           // Deserialize dates from JSON
-          const deserializedItem = this.deserializeDates(evidenceItem);
+      const deserializedItem = this.deserializeDates(evidenceItem) as EvidenceItem;
           evidence.push(deserializedItem);
         }
       }
@@ -403,7 +421,7 @@ export class JsonStorageService {
           const analysisPath = path.join(analysisDir, file);
           const analysisItem = await fs.readJson(analysisPath);
           // Deserialize dates from JSON
-          const deserializedItem = this.deserializeDates(analysisItem);
+      const deserializedItem = this.deserializeDates(analysisItem) as AnalysisResult;
           analysis.push(deserializedItem);
         }
       }
@@ -466,7 +484,7 @@ export class JsonStorageService {
 
       const investigation = await fs.readJson(investigationPath);
       // Deserialize dates from JSON
-      const deserializedInvestigation = this.deserializeDates(investigation);
+      const deserializedInvestigation = this.deserializeDates(investigation) as InvestigationCase;
       return deserializedInvestigation.findings || [];
     } catch (error) {
       throw new InvestigationError(
@@ -721,18 +739,19 @@ export class JsonStorageService {
    * Deserialize dates from JSON objects
    * Converts string dates back to Date objects
    */
-  private deserializeDates(obj: any): any {
+  private deserializeDates(obj: unknown): unknown {
     if (obj === null || obj === undefined) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.deserializeDates(item));
+      return obj.map((item: unknown) => this.deserializeDates(item));
     }
 
     if (typeof obj === 'object') {
-      const result: any = {};
-      for (const [key, value] of Object.entries(obj)) {
+      const input = obj as Record<string, unknown>;
+      const result: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(input)) {
         // Check if this looks like a date field or contains a date value
         if (this.isDateField(key, value)) {
           // Convert string dates back to Date objects
@@ -740,7 +759,7 @@ export class JsonStorageService {
             result[key] = new Date(value);
           } else if (Array.isArray(value)) {
             // Handle arrays of dates and nested objects
-            result[key] = value.map(item => {
+            result[key] = value.map((item: unknown) => {
               if (item === null || item === undefined) {
                 return item; // Preserve null and undefined
               } else if (typeof item === 'string' && this.isValidISODateString(item)) {
@@ -768,7 +787,7 @@ export class JsonStorageService {
   /**
    * Check if a field should be treated as a date
    */
-  private isDateField(key: string, value: any): boolean {
+  private isDateField(key: string, value: unknown): boolean {
     // Don't treat objects as dates
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       return false;
@@ -797,12 +816,12 @@ export class JsonStorageService {
     }
 
     // Check if value is an array of date strings (only for known date arrays)
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && this.isValidISODateString(value[0])) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && this.isValidISODateString(value[0] as string)) {
       return true;
     }
 
     // Don't treat arrays with invalid dates as date fields
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && !this.isValidISODateString(value[0])) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && !this.isValidISODateString(value[0] as string)) {
       return false;
     }
 
@@ -822,7 +841,7 @@ export class JsonStorageService {
     if (isoDatePattern.test(str) || isoDateWithOffsetPattern.test(str)) {
       // Try to create a date and check if it's valid
       const date = new Date(str);
-      return !isNaN(date.getTime());
+      return !Number.isNaN(date.getTime());
     }
     
     return false;

@@ -129,7 +129,7 @@ export class AuditTrail {
         errorMessage: options.errorMessage,
         metadata: {
           ...options.metadata,
-          systemVersion: '2.2.3',
+          systemVersion: '2.2.5',
           nodeVersion: process.version,
           platform: process.platform
         }

@@ -36,6 +36,19 @@ describe('Investigation System', () => {
     await expect(database.initialize()).resolves.not.toThrow();
   });
 
+  test('resolves relative storage path to absolute and writable', async () => {
+    const relPath = `./.investigations-rel-${Date.now()}`;
+    const cwd = process.cwd();
+    const expected = path.resolve(cwd, relPath);
+    const db = new InvestigationDatabase(relPath);
+    await db.initialize();
+    expect(db.getDatabasePath()).toBe(expected);
+    await db.close();
+    if (await fs.pathExists(expected)) {
+      await fs.remove(expected);
+    }
+  });
+
   test('should create and retrieve investigation', async () => {
     const investigation: InvestigationCase = {
       id: `test-${Date.now()}`,

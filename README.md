@@ -230,7 +230,9 @@ Add to your Cursor settings:
       "investigations": {
         "command": "npx",
         "args": ["investigations"],
-        "env": {}
+         "env": {
+          "INVESTIGATIONS_STORAGE_PATH": "/absolute/path/to/.investigations"
+        }
       }
     }
   }
@@ -301,7 +303,9 @@ Add to your Windsurf configuration:
       "investigations": {
         "command": "npx",
         "args": ["investigations"],
-        "env": {}
+         "env": {
+          "INVESTIGATIONS_STORAGE_PATH": "/absolute/path/to/.investigations"
+        }
       }
     }
   }
@@ -397,12 +401,12 @@ rm -rf ~/.npm/_npx
 The application uses JSON-based file storage for maximum compatibility. All data is stored in the `./.investigations/` directory with automatic FIFO management.
 
 #### Crypto Deprecation Warnings
-If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.2.3 or later, which uses Node.js built-in crypto module instead.
+If you see warnings about deprecated `crypto@1.0.1` package, ensure you're using version 2.2.5 or later, which uses Node.js built-in crypto module instead.
 
 #### MCP Server Connection Issues
 If you encounter "failed to initialize server" or "transport error: server terminated" errors:
 
-1. **Check version**: Ensure you're using version 2.2.3 or later
+1. **Check version**: Ensure you're using version 2.2.5 or later
 2. **Clear corrupted cache** (MOST COMMON FIX):
    ```bash
    npm cache clean --force
@@ -482,7 +486,7 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.2.3 (Current)
+### v2.2.5 (Current)
 - **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage with FIFO management.
 - **Enhanced Storage Architecture**: Organized file structure with automatic cleanup and indexing.
 - **Improved Performance**: Eliminated native module dependencies for better compatibility.

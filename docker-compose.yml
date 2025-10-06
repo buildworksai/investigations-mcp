@@ -1,10 +1,10 @@
-# Investigations MCP Tools v2.2.3 - Docker Compose Configuration
+# Investigations MCP Tools v2.2.5 - Docker Compose Configuration
 version: '3.8'
 
 services:
   investigations:
     build: .
-    container_name: investigations-v2.2.3
+    container_name: investigations-v2.2.5
     stdin_open: true
     tty: true
     volumes:
@@ -14,7 +14,7 @@ services:
       - ./reports:/app/reports
     environment:
       - NODE_ENV=production
-      - VERSION=2.2.3
+      - VERSION=2.2.5
     networks:
       - mcp-network
 

@@ -1,4 +1,4 @@
-# 🚀 Production Deployment Guide - Investigations MCP v2.2.3
+# 🚀 Production Deployment Guide - Investigations MCP v2.2.5
 
 ## 📋 **PRE-DEPLOYMENT CHECKLIST**
 
@@ -51,7 +51,7 @@ cd /home/investigations/app
 
 # Clone repository
 git clone <your-repo-url> .
-git checkout v2.2.3
+git checkout v2.2.5
 
 # Install dependencies
 npm ci --production
@@ -148,7 +148,7 @@ cd /opt/investigations
 
 # Clone repository
 git clone <your-repo-url> .
-git checkout v2.2.3
+git checkout v2.2.5
 
 # Create environment file
 cat > .env << EOF
@@ -546,7 +546,7 @@ sudo systemctl stop investigations
 # Update application
 cd $APP_DIR
 git fetch origin
-git checkout v2.2.3  # or latest version
+git checkout v2.2.5  # or latest version
 npm ci --production
 npm run build
 

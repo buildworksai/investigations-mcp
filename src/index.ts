@@ -13,6 +13,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { v4 as uuidv4 } from 'uuid';
 import { InvestigationDatabase } from './services/database.js';
+import path from 'path';
 import { EvidenceCollector } from './collectors/evidence-collector.js';
 import { AnalysisEngine } from './analyzers/analysis-engine.js';
 import { ReportGenerator } from './services/report-generator.js';
@@ -38,7 +39,7 @@ class InvestigationMCPServer {
             this.server = new Server(
               {
                 name: 'Investigations MCP by BuildWorks.AI',
-                version: '2.2.3',
+                version: '2.2.5',
               },
           {
             capabilities: {
@@ -47,7 +48,15 @@ class InvestigationMCPServer {
           }
         );
 
-    this.database = new InvestigationDatabase();
+    // Support --storage-path CLI override
+    let storagePathOverride: string | undefined;
+    const storageArgIndex = process.argv.findIndex(a => a === '--storage-path');
+    if (storageArgIndex !== -1 && process.argv[storageArgIndex + 1]) {
+      const provided = process.argv[storageArgIndex + 1];
+      storagePathOverride = path.isAbsolute(provided) ? provided : path.resolve(process.cwd(), provided);
+    }
+
+    this.database = new InvestigationDatabase(storagePathOverride);
     this.evidenceCollector = new EvidenceCollector();
     this.analysisEngine = new AnalysisEngine();
     this.reportGenerator = new ReportGenerator();
@@ -115,7 +124,18 @@ class InvestigationMCPServer {
     });
   }
 
-  private async handleInvestigationStart(args: any) {
+  private async handleInvestigationStart(args: {
+    title: string;
+    description: string;
+    severity: string;
+    category: string;
+    priority?: string;
+    reported_by: string;
+    assigned_to?: string;
+    affected_systems?: string[];
+    initial_hypothesis?: string;
+    metadata?: Record<string, unknown>;
+  }) {
     const investigationId = uuidv4();
     const now = new Date();
 
@@ -157,7 +177,11 @@ class InvestigationMCPServer {
     };
   }
 
-  private async handleCollectEvidence(args: any) {
+  private async handleCollectEvidence(args: {
+    investigation_id: string;
+    sources: Array<Record<string, unknown>>;
+    preserve_chain_of_custody?: boolean;
+  }) {
     const { investigation_id, sources, preserve_chain_of_custody = true } = args;
 
     // Verify investigation exists
@@ -200,7 +224,12 @@ class InvestigationMCPServer {
     };
   }
 
-  private async handleAnalyzeEvidence(args: any) {
+  private async handleAnalyzeEvidence(args: {
+    investigation_id: string;
+    analysis_type: string;
+    hypothesis?: string;
+    confidence_threshold?: number;
+  }) {
     const { investigation_id, analysis_type, hypothesis, confidence_threshold = 0.8 } = args;
 
     // Verify investigation exists
@@ -252,7 +281,11 @@ class InvestigationMCPServer {
     }
   }
 
-  private async handleTraceCausality(args: any) {
+  private async handleTraceCausality(args: {
+    investigation_id: string;
+    start_event: string;
+    max_depth?: number;
+  }) {
     const { investigation_id, start_event, max_depth = 10 } = args;
 
     // Verify investigation exists
@@ -289,7 +322,11 @@ class InvestigationMCPServer {
     }
   }
 
-  private async handleValidateHypothesis(args: any) {
+  private async handleValidateHypothesis(args: {
+    investigation_id: string;
+    hypothesis: string;
+    confidence_threshold?: number;
+  }) {
     const { investigation_id, hypothesis, confidence_threshold = 0.8 } = args;
 
     // Verify investigation exists
@@ -330,7 +367,13 @@ class InvestigationMCPServer {
     }
   }
 
-  private async handleDocumentFindings(args: any) {
+  private async handleDocumentFindings(args: {
+    investigation_id: string;
+    findings: string[];
+    root_causes: string[];
+    contributing_factors?: string[];
+    recommendations?: string[];
+  }) {
     const { investigation_id, findings, root_causes, contributing_factors, recommendations } = args;
 
     // Verify investigation exists
@@ -363,7 +406,13 @@ class InvestigationMCPServer {
     };
   }
 
-  private async handleGenerateReport(args: any) {
+  private async handleGenerateReport(args: {
+    investigation_id: string;
+    format: string;
+    include_evidence?: boolean;
+    include_timeline?: boolean;
+    include_analysis?: boolean;
+  }) {
     const { investigation_id, format, include_evidence = true, include_timeline = true, include_analysis = true } = args;
 
     // Verify investigation exists
@@ -403,7 +452,16 @@ class InvestigationMCPServer {
     }
   }
 
-  private async handleListCases(args: any) {
+  private async handleListCases(args: {
+    status?: string;
+    category?: string;
+    severity?: string;
+    priority?: string;
+    assigned_to?: string;
+    date_range?: { start: Date; end: Date };
+    limit?: number;
+    offset?: number;
+  }) {
     const filters = {
       status: args.status,
       category: args.category,
@@ -429,7 +487,7 @@ class InvestigationMCPServer {
     };
   }
 
-  private async handleGetCase(args: any) {
+  private async handleGetCase(args: { investigation_id: string; include_evidence?: boolean }) {
     const { investigation_id, include_evidence = false } = args;
 
     const investigation = await this.database.getInvestigation(investigation_id);
@@ -456,7 +514,13 @@ class InvestigationMCPServer {
     };
   }
 
-  private async handleSearchEvidence(args: any) {
+  private async handleSearchEvidence(args: {
+    investigation_id: string;
+    query: string;
+    evidence_types?: string[];
+    time_range?: { start: Date; end: Date };
+    search_type?: 'text' | 'regex' | 'semantic';
+  }) {
     const { investigation_id, query, evidence_types, time_range, search_type = 'text' } = args;
 
     // Verify investigation exists
@@ -525,7 +589,7 @@ class InvestigationMCPServer {
 
 // Handle command line arguments
 if (process.argv.includes('--version')) {
-  console.log('2.2.3');
+  console.log('2.2.5');
   process.exit(0);
 }
 
@@ -557,7 +621,7 @@ if (process.argv.includes('--health')) {
   } catch (error) {
     console.log(JSON.stringify({
       status: 'unhealthy',
-      version: '2.2.3',
+      version: '2.2.5',
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error)
     }, null, 2));
@@ -599,7 +663,7 @@ if (process.argv.includes('--storage-info')) {
 
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   console.log(`
-🔍 Investigations MCP Tools v2.2.3
+🔍 Investigations MCP Tools v2.2.5
 BuildWorks.AI - Forensic Investigation & Root Cause Analysis
 
 USAGE:
@@ -733,7 +797,7 @@ SUPPORT:
   • Documentation: https://github.com/buildworks-ai/investigations-mcp#readme
 
 BuildWorks.AI - Professional Investigation Tools
-Version 2.2.3 - JSON Storage System
+Version 2.2.5 - JSON Storage System
 `);
   process.exit(0);
 }
