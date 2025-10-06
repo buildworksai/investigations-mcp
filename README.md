@@ -237,6 +237,60 @@ Add to your Cursor settings:
 }
 ```
 
+### Configure Absolute Storage Path (All MCP Clients)
+To ensure consistent initialization across different launch contexts, configure an absolute storage path for JSON storage. You can do this via either an environment variable or a CLI flag. Replace the placeholder with a valid absolute directory on your system.
+
+- Environment variable (recommended):
+```bash
+# Use an absolute path
+export INVESTIGATIONS_STORAGE_PATH="/absolute/path/to/.investigations"
+```
+
+- CLI flag:
+```bash
+investigations --storage-path "/absolute/path/to/.investigations"
+```
+
+- Example MCP server config (env var):
+```json
+{
+  "mcp": {
+    "servers": {
+      "investigations": {
+        "command": "npx",
+        "args": ["investigations"],
+        "env": {
+          "INVESTIGATIONS_STORAGE_PATH": "/absolute/path/to/.investigations"
+        }
+      }
+    }
+  }
+}
+```
+
+- Example MCP server config (CLI flag):
+```json
+{
+  "mcp": {
+    "servers": {
+      "investigations": {
+        "command": "npx",
+        "args": [
+          "investigations",
+          "--storage-path",
+          "/absolute/path/to/.investigations"
+        ],
+        "env": {}
+      }
+    }
+  }
+}
+```
+
+Notes:
+- Always use an absolute directory path; the server will create it if it does not exist and the parent is writable.
+- Prefer the environment variable for editor-agnostic setups; use the CLI flag if your client does not support injecting environment variables.
+
 ### Windsurf IDE
 Add to your Windsurf configuration:
 
