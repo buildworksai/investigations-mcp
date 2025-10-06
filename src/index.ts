@@ -18,9 +18,15 @@ import { EvidenceCollector } from './collectors/evidence-collector.js';
 import { AnalysisEngine } from './analyzers/analysis-engine.js';
 import { ReportGenerator } from './services/report-generator.js';
 import { investigationTools } from './tools/investigation-tools.js';
+import Joi from 'joi';
 import type {
   InvestigationCase,
-  EvidenceItem
+  EvidenceItem,
+  EvidenceSource,
+  InvestigationSeverity,
+  InvestigationCategory,
+  AnalysisType,
+  InvestigationFilters
 } from './types/index.js';
 import {
   InvestigationError,
@@ -77,30 +83,153 @@ class InvestigationMCPServer {
 
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
+      const { name } = request.params;
+
+      // Validation helpers and schemas
+      const validateArgs = <T>(schema: Joi.ObjectSchema<T>, raw: unknown, op: string): T => {
+        const candidate = (raw ?? {}) as Record<string, unknown>;
+        const { error, value } = schema.validate(candidate, { abortEarly: false, stripUnknown: true });
+        if (error) {
+          throw new InvestigationError(
+            `Invalid arguments for ${op}: ${error.details.map(d => d.message).join('; ')}`,
+            'VALIDATION_ERROR'
+          );
+        }
+        return value as T;
+      };
+
+      const schemas = {
+        investigation_start: Joi.object({
+          title: Joi.string().min(1).required(),
+          description: Joi.string().allow('').required(),
+          severity: Joi.string().valid('low','medium','high','critical').required(),
+          category: Joi.string().valid('performance','security','reliability','configuration','network','application').required(),
+          priority: Joi.string().valid('p1','p2','p3','p4').optional(),
+          reported_by: Joi.string().min(1).required(),
+          assigned_to: Joi.string().optional(),
+          affected_systems: Joi.array().items(Joi.string()).optional(),
+          initial_hypothesis: Joi.string().optional(),
+          metadata: Joi.object().unknown(true).optional()
+        }),
+        investigation_collect_evidence: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          sources: Joi.array().items(
+            Joi.object({
+              type: Joi.string().valid('logs','config','metrics','network','process','filesystem','database','security').required(),
+              path: Joi.string().optional(),
+              filters: Joi.object().unknown(true).optional(),
+              time_range: Joi.object({ start: Joi.date(), end: Joi.date() }).optional(),
+              parameters: Joi.object().unknown(true).optional()
+            }).unknown(false)
+          ).required(),
+          preserve_chain_of_custody: Joi.boolean().optional()
+        }),
+        investigation_analyze_evidence: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          analysis_type: Joi.string().valid('timeline','causal','performance','security','correlation','statistical').required(),
+          hypothesis: Joi.string().optional(),
+          confidence_threshold: Joi.number().min(0).max(1).optional()
+        }),
+        investigation_trace_causality: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          start_event: Joi.string().min(1).required(),
+          max_depth: Joi.number().integer().min(1).max(100).optional()
+        }),
+        investigation_validate_hypothesis: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          hypothesis: Joi.string().min(1).required(),
+          confidence_threshold: Joi.number().min(0).max(1).optional()
+        }),
+        investigation_document_findings: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          findings: Joi.array().items(Joi.string()).required(),
+          root_causes: Joi.array().items(Joi.string()).required(),
+          contributing_factors: Joi.array().items(Joi.string()).optional(),
+          recommendations: Joi.array().items(Joi.string()).optional()
+        }),
+        investigation_generate_report: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          format: Joi.string().valid('json','markdown','pdf','html','xml','yaml','csv','excel','powerpoint').required(),
+          include_evidence: Joi.boolean().optional(),
+          include_timeline: Joi.boolean().optional(),
+          include_analysis: Joi.boolean().optional()
+        }),
+        investigation_get_case: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          include_evidence: Joi.boolean().optional()
+        }),
+        investigation_list_cases: Joi.object({
+          status: Joi.string().valid('active','completed','archived').optional(),
+          category: Joi.string().optional(),
+          severity: Joi.string().valid('low','medium','high','critical').optional(),
+          priority: Joi.string().valid('p1','p2','p3','p4').optional(),
+          assigned_to: Joi.string().optional(),
+          date_range: Joi.object({ start: Joi.date(), end: Joi.date() }).optional(),
+          limit: Joi.number().integer().min(1).max(1000).optional(),
+          offset: Joi.number().integer().min(0).optional()
+        }) as Joi.ObjectSchema<{
+          status?: 'active' | 'completed' | 'archived';
+          category?: string;
+          severity?: 'low' | 'medium' | 'high' | 'critical';
+          priority?: 'p1' | 'p2' | 'p3' | 'p4';
+          assigned_to?: string;
+          date_range?: { start: Date; end: Date };
+          limit?: number;
+          offset?: number;
+        }>,
+        investigation_search_evidence: Joi.object({
+          investigation_id: Joi.string().uuid().required(),
+          query: Joi.string().min(1).required(),
+          evidence_types: Joi.array().items(Joi.string()).optional(),
+          time_range: Joi.object({ start: Joi.date(), end: Joi.date() }).optional(),
+          search_type: Joi.string().valid('text','regex','semantic').optional()
+        })
+      } as const;
 
       try {
         switch (name) {
           case 'investigation_start':
-            return await this.handleInvestigationStart(args);
+            return await this.handleInvestigationStart(
+              validateArgs(schemas.investigation_start, request.params.arguments, 'investigation_start')
+            );
           case 'investigation_collect_evidence':
-            return await this.handleCollectEvidence(args);
+            {
+              const a = validateArgs(schemas.investigation_collect_evidence, request.params.arguments, 'investigation_collect_evidence');
+              // ensure sources typed correctly
+              return await this.handleCollectEvidence(a as unknown as { investigation_id: string; sources: EvidenceSource[]; preserve_chain_of_custody?: boolean });
+            }
           case 'investigation_analyze_evidence':
-            return await this.handleAnalyzeEvidence(args);
+            return await this.handleAnalyzeEvidence(
+              validateArgs(schemas.investigation_analyze_evidence, request.params.arguments, 'investigation_analyze_evidence')
+            );
           case 'investigation_trace_causality':
-            return await this.handleTraceCausality(args);
+            return await this.handleTraceCausality(
+              validateArgs(schemas.investigation_trace_causality, request.params.arguments, 'investigation_trace_causality')
+            );
           case 'investigation_validate_hypothesis':
-            return await this.handleValidateHypothesis(args);
+            return await this.handleValidateHypothesis(
+              validateArgs(schemas.investigation_validate_hypothesis, request.params.arguments, 'investigation_validate_hypothesis')
+            );
           case 'investigation_document_findings':
-            return await this.handleDocumentFindings(args);
+            return await this.handleDocumentFindings(
+              validateArgs(schemas.investigation_document_findings, request.params.arguments, 'investigation_document_findings')
+            );
           case 'investigation_generate_report':
-            return await this.handleGenerateReport(args);
+            return await this.handleGenerateReport(
+              validateArgs(schemas.investigation_generate_report, request.params.arguments, 'investigation_generate_report')
+            );
           case 'investigation_list_cases':
-            return await this.handleListCases(args);
+            return await this.handleListCases(
+              validateArgs(schemas.investigation_list_cases, request.params.arguments, 'investigation_list_cases')
+            );
           case 'investigation_get_case':
-            return await this.handleGetCase(args);
+            return await this.handleGetCase(
+              validateArgs(schemas.investigation_get_case, request.params.arguments, 'investigation_get_case')
+            );
           case 'investigation_search_evidence':
-            return await this.handleSearchEvidence(args);
+            return await this.handleSearchEvidence(
+              validateArgs(schemas.investigation_search_evidence, request.params.arguments, 'investigation_search_evidence')
+            );
           default:
             throw new InvestigationError(
               `Unknown tool: ${name}`,
@@ -127,9 +256,9 @@ class InvestigationMCPServer {
   private async handleInvestigationStart(args: {
     title: string;
     description: string;
-    severity: string;
-    category: string;
-    priority?: string;
+    severity: InvestigationSeverity;
+    category: InvestigationCategory;
+    priority?: 'p1' | 'p2' | 'p3' | 'p4';
     reported_by: string;
     assigned_to?: string;
     affected_systems?: string[];
@@ -146,7 +275,7 @@ class InvestigationMCPServer {
       status: 'active',
       severity: args.severity,
       category: args.category,
-      priority: args.priority || 'p3',
+      priority: (args.priority || 'p3'),
       created_at: now,
       updated_at: now,
       reported_by: args.reported_by,
@@ -179,7 +308,7 @@ class InvestigationMCPServer {
 
   private async handleCollectEvidence(args: {
     investigation_id: string;
-    sources: Array<Record<string, unknown>>;
+    sources: EvidenceSource[];
     preserve_chain_of_custody?: boolean;
   }) {
     const { investigation_id, sources, preserve_chain_of_custody = true } = args;
@@ -226,7 +355,7 @@ class InvestigationMCPServer {
 
   private async handleAnalyzeEvidence(args: {
     investigation_id: string;
-    analysis_type: string;
+    analysis_type: AnalysisType;
     hypothesis?: string;
     confidence_threshold?: number;
   }) {
@@ -388,10 +517,10 @@ class InvestigationMCPServer {
 
     // Update investigation with findings
     await this.database.updateInvestigation(investigation_id, {
-      findings,
+      // findings intentionally omitted until full Finding objects are provided
       root_causes,
       contributing_factors,
-      recommendations,
+      // recommendations intentionally omitted until full Recommendation objects are provided
       status: 'completed',
       updated_at: new Date()
     });
@@ -408,7 +537,7 @@ class InvestigationMCPServer {
 
   private async handleGenerateReport(args: {
     investigation_id: string;
-    format: string;
+    format: 'json' | 'markdown' | 'pdf' | 'html' | 'xml' | 'yaml' | 'csv' | 'excel' | 'powerpoint';
     include_evidence?: boolean;
     include_timeline?: boolean;
     include_analysis?: boolean;
@@ -453,16 +582,16 @@ class InvestigationMCPServer {
   }
 
   private async handleListCases(args: {
-    status?: string;
+    status?: 'active' | 'completed' | 'archived';
     category?: string;
-    severity?: string;
-    priority?: string;
+    severity?: 'low' | 'medium' | 'high' | 'critical';
+    priority?: 'p1' | 'p2' | 'p3' | 'p4';
     assigned_to?: string;
     date_range?: { start: Date; end: Date };
     limit?: number;
     offset?: number;
   }) {
-    const filters = {
+    const filters: InvestigationFilters = {
       status: args.status,
       category: args.category,
       severity: args.severity,

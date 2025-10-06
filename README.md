@@ -486,7 +486,14 @@ For questions, issues, or contributions:
 
 ## Changelog
 
-### v2.2.5 (Current)
+### v2.2.6 (Current)
+- Strict argument validation for all MCP tools with Joi schemas
+- Type-safe handler inputs in `src/index.ts` to satisfy CI tsc checks
+- Build hardening: resolves MCP request `arguments` undefined cases
+- Docs: clarified absolute storage path configuration for MCP clients
+- No behavioral changes to existing tools; validation errors are clearer
+
+### v2.2.5
 - **Complete JSON Storage System**: Full migration from SQLite to JSON-based file storage with FIFO management.
 - **Enhanced Storage Architecture**: Organized file structure with automatic cleanup and indexing.
 - **Improved Performance**: Eliminated native module dependencies for better compatibility.
