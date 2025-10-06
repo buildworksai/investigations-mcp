@@ -312,6 +312,13 @@ Add to your Windsurf configuration:
 }
 ```
 
+### MCP Integration Checklist (Recommended)
+- **Absolute storage path**: Set `INVESTIGATIONS_STORAGE_PATH` (or `--storage-path`) to an absolute, writable directory in your MCP server config.
+- **Version check**: Ensure the server prints `2.2.6` for `--version` in logs; update if older.
+- **Startup log**: Confirm the startup stderr line shows the resolved JSON storage path.
+- **Validation**: If a tool call fails, check for `VALIDATION_ERROR` messages and adjust args to allowed enums/fields.
+- **Client restart**: After MCP config changes, restart your IDE client to reload servers.
+
 ## Docker Support
 
 ### Build and Run
